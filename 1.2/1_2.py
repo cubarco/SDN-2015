@@ -56,11 +56,12 @@ class RestrictedHTTPRequest(app_manager.RyuApp):
         eth = pkt.get_protocols(ethernet.ethernet)[0]
         dst = eth.dst
         src = eth.src
-        tcp_p = pkt.get_protocols(tcp.tcp)[0]
+        tcp_p = pkt.get_protocols(tcp.tcp)
 
-        if dpid != 2 or src in self.macs:
+        if dpid != 2 or src in self.macs or len(tcp_p) == 0:
             return
         
+        tcp_p = tcp_p[0]
         if tcp_p.ack <= 1: # TCP three-way handshake and HTTP request
             return
 
