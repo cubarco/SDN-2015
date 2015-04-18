@@ -73,7 +73,7 @@ def delete():
         response.status = 500
         return
     
-    url = "http://localhost:8080/stats/flowentry/delete"
+    url = "http://localhost:8080/stats/flowentry/delete_strict"
     headers = {'Content-Type': 'application/json'}
     for i in keys:
         payload = json.dumps(known_flows[i])
