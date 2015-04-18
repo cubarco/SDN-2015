@@ -17,21 +17,26 @@ def server_static(filename):
 @route('/topo')
 def topo():
     try:
-        orig = urlopen("http://localhost:8080/v1.0/topology/links").read()
+        links = json.loads(urlopen("http://localhost:8080/v1.0/topology/links")
+                           .read())
+        switches = json.loads(urlopen(
+                        "http://localhost:8080/v1.0/topology/switches").read())
     except URLError:
         response.status = 500
         return
-    links = json.loads(orig)
     g = nx.Graph()
+
+    for switch in switches:
+        dpid = "s" + hex(eval('0x' + switch['dpid']))[2:]
+        g.add_node(dpid)
+
     for link in links:
-        src = link['src']['name'].split('-')[0]
-        dst = link['dst']['name'].split('-')[0]
-#        src = link['src']['dpid']
-#        dst = link['dst']['dpid']
+#        src = link['src']['dpid'].split('-')[0]
+#        dst = link['dst']['name'].split('-')[0]
+        src = "s" + hex(eval('0x' + link['src']['dpid']))[2:]
+        dst = "s" + hex(eval('0x' + link['dst']['dpid']))[2:]
 #        src = link['src']['hw_addr']
 #        dst = link['dst']['hw_addr']
-        g.add_node(src)
-        g.add_node(dst)
         g.add_edge(src, dst)
     data = json_graph.node_link_data(g)
     response.set_header('Content-Type', 'application/json')
