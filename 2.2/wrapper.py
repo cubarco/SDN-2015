@@ -110,11 +110,6 @@ def add():
                 action_toappend.setdefault(kv[0], kv[1])
         req['actions'].append(action_toappend)
     
-    if not req.get('dpid') or not req.get('match') or not req.get('actions'):
-        response.status = 500
-        return
-
-    print req
     url = "http://localhost:8080/stats/flowentry/add"
     headers = {'Content-Type': 'application/json'}
     payload = json.dumps(req)
