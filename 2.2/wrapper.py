@@ -48,9 +48,11 @@ def flow():
         orig_j = orig_j[str(dpid)]
         for flow in orig_j:
             flow['dpid'] = str(dpid)
+
             flow_tmp = flow.copy()
             for pop_item in pop_list:
-                flow_tmp.pop(pop_item)
+                if pop_item in flow_tmp:
+                    flow_tmp.pop(pop_item)
             known_flows.append(flow_tmp)
 
             flow['actions'] = ','.join(flow['actions']).replace('4294967293',
