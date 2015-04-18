@@ -27,14 +27,14 @@ def topo():
     g = nx.Graph()
 
     for switch in switches:
-        dpid = "s" + hex(eval('0x' + switch['dpid']))[2:]
+        dpid = "dpid: %d" % eval('0x' + switch['dpid'])
         g.add_node(dpid)
 
     for link in links:
 #        src = link['src']['dpid'].split('-')[0]
 #        dst = link['dst']['name'].split('-')[0]
-        src = "s" + hex(eval('0x' + link['src']['dpid']))[2:]
-        dst = "s" + hex(eval('0x' + link['dst']['dpid']))[2:]
+        src = "dpid: %d" % eval('0x' + link['src']['dpid'])
+        dst = "dpid: %d" % eval('0x' + link['dst']['dpid'])
 #        src = link['src']['hw_addr']
 #        dst = link['dst']['hw_addr']
         g.add_edge(src, dst)
