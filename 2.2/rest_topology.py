@@ -42,7 +42,7 @@ from ryu.lib.packet import packet, ethernet, arp
 # get the links of a switch
 # GET /v1.0/topology/links/<dpid>
 #
-# get all hosts
+# get all the hosts
 # GET /v1.0/topology/hosts
 #
 # where
