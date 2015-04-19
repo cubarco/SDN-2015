@@ -33,7 +33,7 @@ function load_graph() {
       .data(json.nodes)
       .enter().append("svg:circle")
       .attr("class", "node")
-      .attr("r", 15)
+      .attr("r", function(d) {return 15 - 5*(d.group-1);})
       .style("fill", function(d) {return colors[d.group]; })
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
