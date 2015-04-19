@@ -60,8 +60,7 @@ class TopologyAPI(app_manager.RyuApp):
 
         wsgi = kwargs['wsgi']
         wsgi.register(TopologyController, {'topology_api_app': self})
-        # hosts: {'xx:xx:xx:xx:xx:xx': {'dpid': int, 'ip': str, 
-        #                               'time': time.time()}, ...}
+        # hosts: {'xx:xx:xx:xx:xx:xx': {'dpid': int, 'time': time.time()}, ...}
         self.hosts = {}
         # arp: {'xx:xx:xx:xx:xx:xx': {'dpid': int, 'ip': str,
         #                             'time': time.time()}, ...}
@@ -96,13 +95,8 @@ class TopologyAPI(app_manager.RyuApp):
                                            'time': time_now}
             return
 
-        if in_port in ports:
-            return
-        else:
-            self.hosts[src] = {'dpid': dpid, 'time': time_now, 'ip': None}
-            self.clear_arp()
-            if src in self.arp:
-                self.hosts[src]['ip'] = self.arp[src]['ip']
+        if in_port not in ports:
+            self.hosts[src] = {'dpid': dpid, 'time': time_now}
 
     @set_ev_cls(ofp_event.EventOFPStateChange, DEAD_DISPATCHER)
     def _connection_down(self, ev):
@@ -143,10 +137,12 @@ class TopologyAPI(app_manager.RyuApp):
         self.last_clear_hosts = time_now
 
     def get_hosts(self):
+        self.clear_arp()
         self.clear_hosts()
         hosts = self.hosts
-        return json.dumps({hosts[src]['ip']: hosts[src]['dpid']
-                           for src in hosts if hosts[src]['ip'] != None})
+        arp = self.arp
+        return json.dumps({arp[src]['ip']: hosts[src]['dpid']
+                           for src in hosts if src in arp})
 
 
 class TopologyController(ControllerBase):
