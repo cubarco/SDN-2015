@@ -1,3 +1,19 @@
+#!/usr/bin/env python
+# Copyright (C) 2015 UniqueSDNStudio
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import os
 import json
 import requests
@@ -21,23 +37,30 @@ def topo():
                            .read())
         switches = json.loads(urlopen(
                         "http://localhost:8080/v1.0/topology/switches").read())
+        hosts = json.loads(urlopen(
+                        "http://localhost:8080/v1.0/topology/hosts").read())
     except URLError:
         response.status = 500
         return
     g = nx.Graph()
 
     for switch in switches:
-        dpid = "dpid: %d" % eval('0x' + switch['dpid'])
-        g.add_node(dpid)
+        dpid = "dpid: %d" % int(switch['dpid'], 16)
+        g.add_node(dpid, group=1)
+
+    for host in hosts:
+        g.add_node(host, group=2)
 
     for link in links:
-#        src = link['src']['dpid'].split('-')[0]
-#        dst = link['dst']['name'].split('-')[0]
-        src = "dpid: %d" % eval('0x' + link['src']['dpid'])
-        dst = "dpid: %d" % eval('0x' + link['dst']['dpid'])
-#        src = link['src']['hw_addr']
-#        dst = link['dst']['hw_addr']
+        src = "dpid: %d" % int(link['src']['dpid'], 16)
+        dst = "dpid: %d" % int(link['dst']['dpid'], 16)
         g.add_edge(src, dst)
+
+    for host in hosts:
+        src = host
+        dst = "dpid: %d" % hosts[host]
+        g.add_edge(host, dst)
+
     data = json_graph.node_link_data(g)
     response.set_header('Content-Type', 'application/json')
     return data

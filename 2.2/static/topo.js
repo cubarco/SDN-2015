@@ -1,5 +1,6 @@
 function load_graph() {
   document.getElementById('chart').innerHTML = "";
+  var colors = ["", "#1f77b4", "#aec7e8"];
   var w = 900,
       h = 600,
       fill = d3.scale.category20();
@@ -33,7 +34,7 @@ function load_graph() {
       .enter().append("svg:circle")
       .attr("class", "node")
       .attr("r", 15)
-      .style("fill", function(d) { return fill(d.group); })
+      .style("fill", function(d) {return colors[d.group]; })
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
       .call(topo.drag);
