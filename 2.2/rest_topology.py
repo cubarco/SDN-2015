@@ -80,7 +80,7 @@ class TopologyAPI(app_manager.RyuApp):
                  for link in get_link(self, dpid)]
 
         pkt = packet.Packet(msg.data)
-        eth = pkt.get_protocols(ethernet.ethernet)[0]
+        eth = pkt.get_protocol(ethernet.ethernet)
         src = eth.src
         dst = eth.dst
         time_now = time.time()
@@ -89,7 +89,7 @@ class TopologyAPI(app_manager.RyuApp):
             self.hosts[src] = {'dpid': dpid, 'time': time_now}
 
         if eth.ethertype == 0x0806:  # ARP packet
-            arp_p = pkt.get_protocols(arp.arp)[0]
+            arp_p = pkt.get_protocol(arp.arp)
             if arp_p.src_mac != '00:00:00:00:00:00':
                 self.arp[arp_p.src_mac] = {'dpid': dpid, 'ip': arp_p.src_ip,
                                            'time': time_now}
@@ -97,7 +97,7 @@ class TopologyAPI(app_manager.RyuApp):
                 self.arp[arp_p.dst_mac] = {'dpid': dpid, 'ip': arp_p.dst_ip,
                                            'time': time_now}
         elif eth.ethertype == 0x0800:  # IPv4 packet
-            ip_p = pkt.get_protocols(ipv4.ipv4)[0]
+            ip_p = pkt.get_protocol(ipv4.ipv4)
             if ip_p.proto == 17:
                 udp_p = pkt.get_protocol(udp.udp)
                 if udp_p.dst_port == 67 and udp_p.src_port == 68:  # DHCP
