@@ -56,12 +56,12 @@ def topo():
     for link in links:
         src = "dpid: %d" % int(link['src']['dpid'], 16)
         dst = "dpid: %d" % int(link['dst']['dpid'], 16)
-        g.add_edge(src, dst)
+        g.add_edge(src, dst, value=9)
 
     for host in hosts:
         src = host
         dst = "dpid: %d" % hosts[host]
-        g.add_edge(host, dst)
+        g.add_edge(host, dst, value=1)
 
     data = json_graph.node_link_data(g)
     response.set_header('Content-Type', 'application/json')

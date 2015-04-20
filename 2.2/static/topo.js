@@ -13,7 +13,7 @@ function load_graph() {
   d3.json("../topo", function(json) {
     var topo = d3.layout.force()
     .charge(-300)
-    .linkDistance(100)
+    .linkDistance(60)
     .nodes(json.nodes)
     .links(json.links)
     .size([w, h])
