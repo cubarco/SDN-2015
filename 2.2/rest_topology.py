@@ -26,7 +26,7 @@ from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, DEAD_DISPATCHER
 from ryu.controller.handler import set_ev_cls
 from ryu.ofproto import ofproto_v1_3
-from ryu.lib.packet import packet, ethernet, arp
+from ryu.lib.packet import packet, ethernet, arp, ipv4, udp
 
 # REST API for switch configuration
 #
@@ -82,7 +82,12 @@ class TopologyAPI(app_manager.RyuApp):
         pkt = packet.Packet(msg.data)
         eth = pkt.get_protocols(ethernet.ethernet)[0]
         src = eth.src
+        dst = eth.dst
         time_now = time.time()
+
+        if in_port not in ports:
+            self.hosts[src] = {'dpid': dpid, 'time': time_now}
+
         if eth.ethertype == 0x0806:  # ARP packet
             arp_p = pkt.get_protocols(arp.arp)[0]
             if arp_p.src_mac != '00:00:00:00:00:00':
@@ -91,10 +96,14 @@ class TopologyAPI(app_manager.RyuApp):
             if arp_p.dst_mac != '00:00:00:00:00:00':
                 self.arp[arp_p.dst_mac] = {'dpid': dpid, 'ip': arp_p.dst_ip,
                                            'time': time_now}
-            return
-
-        if in_port not in ports:
-            self.hosts[src] = {'dpid': dpid, 'time': time_now}
+        elif eth.ethertype == 0x0800:  # IPv4 packet
+            ip_p = pkt.get_protocols(ipv4.ipv4)[0]
+            if ip_p.proto == 17:
+                udp_p = pkt.get_protocol(udp.udp)
+                if udp_p.dst_port == 67 and udp_p.src_port == 68:  # DHCP
+                    return
+            self.arp[src] = {'dpid': dpid, 'ip': ip_p.src, 'time': time_now}
+            self.arp[dst] = {'dpid': dpid, 'ip': ip_p.dst, 'time': time_now}
 
     @set_ev_cls(ofp_event.EventOFPStateChange, DEAD_DISPATCHER)
     def _connection_down(self, ev):
