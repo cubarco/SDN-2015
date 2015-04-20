@@ -23,7 +23,7 @@ from ryu.base import app_manager
 from ryu.lib import dpid as dpid_lib
 from ryu.topology.api import get_switch, get_link
 from ryu.controller import ofp_event
-from ryu.controller.handler import CONFIG_DISPATCHER, MAIN_DISPATCHER, DEAD_DISPATCHER
+from ryu.controller.handler import MAIN_DISPATCHER, DEAD_DISPATCHER
 from ryu.controller.handler import set_ev_cls
 from ryu.ofproto import ofproto_v1_3
 from ryu.lib.packet import packet, ethernet, arp
@@ -54,7 +54,7 @@ class TopologyAPI(app_manager.RyuApp):
         'wsgi': WSGIApplication
     }
     OFP_VERSIONS = [ofproto_v1_3.OFP_VERSION]
-    
+
     def __init__(self, *args, **kwargs):
         super(TopologyAPI, self).__init__(*args, **kwargs)
 
@@ -65,17 +65,15 @@ class TopologyAPI(app_manager.RyuApp):
         # arp: {'xx:xx:xx:xx:xx:xx': {'dpid': int, 'ip': str,
         #                             'time': time.time()}, ...}
         self.arp = {}
-        self.hosts_expiry_time = 60*6 # 6mins
-        self.arp_expiry_time = 60*60*4 # 4hrs
+        self.hosts_expiry_time = 60*6  # 6mins
+        self.arp_expiry_time = 60*60*4  # 4hrs
         self.last_clear_arp = time.time()
         self.last_clear_hosts = time.time()
-    
+
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
     def _packet_in_handler(self, ev):
         msg = ev.msg
         datapath = msg.datapath
-        ofproto = datapath.ofproto
-        parser = datapath.ofproto_parser
         in_port = msg.match['in_port']
         dpid = datapath.id
         ports = [int(link.to_dict()['src']['port_no'], 16)
@@ -85,7 +83,7 @@ class TopologyAPI(app_manager.RyuApp):
         eth = pkt.get_protocols(ethernet.ethernet)[0]
         src = eth.src
         time_now = time.time()
-        if eth.ethertype == 0x0806: # ARP packet
+        if eth.ethertype == 0x0806:  # ARP packet
             arp_p = pkt.get_protocols(arp.arp)[0]
             if arp_p.src_mac != '00:00:00:00:00:00':
                 self.arp[arp_p.src_mac] = {'dpid': dpid, 'ip': arp_p.src_ip,
@@ -123,7 +121,8 @@ class TopologyAPI(app_manager.RyuApp):
 
     def clear_hosts(self, dpid=None):
         time_now = time.time()
-        if not dpid and self.last_clear_hosts + self.hosts_expiry_time > time_now:
+        if not dpid and \
+                self.last_clear_hosts + self.hosts_expiry_time > time_now:
             return
 
         temp_list = []

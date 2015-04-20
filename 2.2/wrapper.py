@@ -26,9 +26,11 @@ CURDIR = os.curdir
 pop_list = ['duration_sec', 'duration_nsec', 'packet_count', 'byte_count',
             'actions', 'length']
 
+
 @route('/static/<filename>')
 def server_static(filename):
     return static_file(filename, root=CURDIR + '/static/')
+
 
 @route('/topo')
 def topo():
@@ -65,9 +67,11 @@ def topo():
     response.set_header('Content-Type', 'application/json')
     return data
 
+
 @route('/flow')
 def flow():
-    switches = json.loads(urlopen("http://localhost:8080/stats/switches").read())
+    switches = json.loads(urlopen("http://localhost:8080/stats/switches")
+                          .read())
     resp_j = []
     known_flows = []
     for dpid in switches:
@@ -86,13 +90,14 @@ def flow():
             flow['actions'] = ','.join(flow['actions']).replace('4294967293',
                                                                 'CONTROLLER')
             flow['match'] = ','.join(['{0}={1}'.format(field, value)
-                                    for field, value
-                                    in flow['match'].iteritems()])
+                                      for field, value
+                                      in flow['match'].iteritems()])
             resp_j.append(flow)
     with open('known_flows', 'w') as f:
         f.write(json.dumps(known_flows))
     response.set_header('Content-Type', 'application/json')
     return json.dumps(resp_j, indent=2)
+
 
 @post('/delete')
 def delete():
@@ -102,12 +107,13 @@ def delete():
     if not keys or len(known_flows) < len(keys):
         response.status = 500
         return
-    
+
     url = "http://localhost:8080/stats/flowentry/delete_strict"
     headers = {'Content-Type': 'application/json'}
     for i in keys:
         payload = json.dumps(known_flows[i])
-        r = requests.post(url, data=payload, headers=headers)
+        requests.post(url, data=payload, headers=headers)
+
 
 @post('/add')
 def add():
@@ -139,7 +145,7 @@ def add():
                     kv[1] = kv[1].upper()
                 action_toappend.setdefault(kv[0], kv[1])
         req['actions'].append(action_toappend)
-    
+
     url = "http://localhost:8080/stats/flowentry/add"
     headers = {'Content-Type': 'application/json'}
     payload = json.dumps(req)

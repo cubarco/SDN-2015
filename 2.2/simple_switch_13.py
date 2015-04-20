@@ -83,7 +83,7 @@ class SimpleSwitch13(app_manager.RyuApp):
 
         pkt = packet.Packet(msg.data)
         eth = pkt.get_protocols(ethernet.ethernet)[0]
-        
+
         if eth.ethertype == 0x88cc:
             return
 
@@ -111,7 +111,7 @@ class SimpleSwitch13(app_manager.RyuApp):
             # verify if we have a valid buffer_id, if yes avoid to send both
             # flow_mod & packet_out
             if msg.buffer_id != ofproto.OFP_NO_BUFFER:
-                self.add_flow(datapath, 1, match, actions, 
+                self.add_flow(datapath, 1, match, actions,
                               hard_timeout=120, idle_timeout=30,
                               buffer_id=msg.buffer_id)
                 return

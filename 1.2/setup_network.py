@@ -26,10 +26,10 @@ if __name__ == '__main__':
     print "Links: ",
     links = [(s1, h1), (s1, s2), (s2, h2)]
     for node1, node2 in links:
-        print '({0}, {1})'.format(node1.name, node2.name), 
+        print '({0}, {1})'.format(node1.name, node2.name),
         Link(node1, node2)
     print
-    
+
     net.build()
     c0.start()
     s1.start([c0])
