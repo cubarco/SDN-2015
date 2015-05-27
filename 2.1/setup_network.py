@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 from mininet.cli import CLI
+from mininet.node import RemoteController
 from mininet.link import Link
 from mininet.net import Mininet
-from mininet.node import RemoteController
 
 if __name__ == '__main__':
     """
