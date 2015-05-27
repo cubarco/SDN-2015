@@ -1,0 +1,15 @@
+\begin{thebibliography}{1}
+
+\bibitem{TEXGURU99}
+{\TeX}Guru.
+\newblock {\LaTeXe} Manual.
+\newblock 1999
+\thudot
+
+\bibitem{knuth}
+{Donald E Knuth}.
+\newblock The \TeX{}book.
+\newblock MA: Addison–Wesley Pub. Co., 1984
+\thudot
+
+\end{thebibliography}
