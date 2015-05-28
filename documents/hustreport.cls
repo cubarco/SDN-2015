@@ -597,7 +597,7 @@
 \def\HUST@zhtitlepage{
   \begin{center}
   \null\vskip 1cm
-  \includegraphics[width=.5\textwidth]{hust-title.pdf} \\[0.8cm]
+  \includegraphics[width=.5\textwidth]{fig/hust-title.pdf} \\[0.8cm]
   \parbox[t][][t]{\textwidth}{
     \centering
     \changefont{size=22pt,linespread=1.5}
