@@ -1,0 +1,15 @@
+*.pyc
+known_flows
+env/
+.*~
+
+# tex
+output/*
+*.out
+*.lot
+*.log
+*.lof
+*.blg
+*.bbl
+*.toc
+*.thm
