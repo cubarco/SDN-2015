@@ -4,7 +4,8 @@ known_flows
 .*~
 
 # tex
-**/output/*.aux
+**/output/*.bib
+*.aux
 *.out
 *.lot
 *.log
