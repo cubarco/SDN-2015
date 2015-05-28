@@ -1,10 +1,10 @@
 *.pyc
 known_flows
-env/
+**/env/
 .*~
 
 # tex
-output/*
+**/output/*.aux
 *.out
 *.lot
 *.log
