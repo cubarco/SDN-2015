@@ -341,7 +341,7 @@
 \ifthenelse{\equal{\HUST@language}{chinese}}{
   \def\HUST@ackname{致\hspace{1em}谢}
   \def\HUST@acknamenospace{致谢}
-  \def\HUST@publicationtitle{参加第二届SDN比赛的初赛报告}
+  \def\HUST@publicationtitle{UniqueSDNStudio初赛文档}
 }{
   \def\HUST@ackname{Acknowledge}
   \def\HUST@acknamenospace{Acknowledge}
@@ -760,6 +760,7 @@
   \let\thepage\HUST@oldthepage
   \setcounter{page}{1}
 }
+
 \let\makecover\maketitle
 \def\HUST@zhabstractpage{
   \chapter*{\HUST@zhabstractname}
@@ -945,25 +946,26 @@
       \vskip 2cm
     }
   }{\null\vfill}
-  \begin{flushleft}
-    \TurnOffTabFontSetting
-    \changefont{size=16pt,linespread=1.5}
-    \bfseries
-    \begin{tabular}{p{8em}@{\hspace{1em}}l}
-    \ifthenelse{\equal{\HUST@language}{chinese}}{研究生签字}{Student Signature}
-    & \makebox[10em][l]{\rule[-2.0pt]{10em}{1pt}} \\[2ex]
-    \ifthenelse{\equal{\HUST@language}{chinese}}{指导教师签字}{Advisor Signature}
-    & \makebox[10em][l]{\rule[-2.0pt]{10em}{1pt}} \\[2ex]
-    \ifthenelse{\equal{\HUST@language}{chinese}}{院(系、所)领导签字}{Dean Signature}
-    & \makebox[10em][l]{\rule[-2.0pt]{10em}{1pt}}
-    \end{tabular}
-    \TurnOnTabFontSetting
-  \end{flushleft}
-  \vskip 2cm
+% \begin{flushleft}
+%   \TurnOffTabFontSetting
+%   \changefont{size=16pt,linespread=1.5}
+%   \bfseries
+%   \begin{tabular}{p{8em}@{\hspace{1em}}l}
+%   \ifthenelse{\equal{\HUST@language}{chinese}}{研究生签字}{Student Signature}
+%   & \makebox[10em][l]{\rule[-2.0pt]{10em}{1pt}} \\[2ex]
+%   \ifthenelse{\equal{\HUST@language}{chinese}}{指导教师签字}{Advisor Signature}
+%   & \makebox[10em][l]{\rule[-2.0pt]{10em}{1pt}} \\[2ex]
+%   \ifthenelse{\equal{\HUST@language}{chinese}}{院(系、所)领导签字}
+%{Dean Signature}
+%   & \makebox[10em][l]{\rule[-2.0pt]{10em}{1pt}}
+%   \end{tabular}
+%   \TurnOnTabFontSetting
+% \end{flushleft}
+% \vskip 2cm
   \begin{flushright}
     \changefont{size=16pt,linespread=1.5}
     \bfseries
-    \ifthenelse{\equal{\HUST@language}{chinese}}{\hspace{2em}年\hspace{2em}月\hspace{2em}日}{Date:\hspace{8em}}
+    \ifthenelse{\equal{\HUST@language}{chinese}}{2015 年 5 月 31 日}{Date:\hspace{8em}}
   \end{flushright}
   \vskip 6ex
 }

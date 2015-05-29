@@ -15,6 +15,7 @@ ${BASENAME}.pdf: ${TEX_FILE}
 	fi ;
 	cd ${OUTPUT_DIRECTORY} && ${BIBTEX} ${BASENAME}
 	${TEX} $<
+	${TEX} $<
 
 clean:
 	rm -rf output/{*.out,*.lot,*.log,*.lof,*.toc,*.thm,*.aux,*.blg,*.bbl,*.bib}
