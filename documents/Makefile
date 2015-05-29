@@ -15,6 +15,7 @@ ${BASENAME}.pdf: ${TEX_FILE}
 	fi ;
 	cd ${OUTPUT_DIRECTORY} && ${BIBTEX} ${BASENAME}
 	${TEX} $<
+	${TEX} $<
 
 clean:  
 	cd ${OUTPUT_DIRECTORY} && make clean
