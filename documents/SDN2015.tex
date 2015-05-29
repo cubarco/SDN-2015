@@ -329,9 +329,15 @@ Controller 接受到 PacketIn message 时，以下代码将会发挥作用。
 
 2 可以设置 Host1 或 Host2 为代理用户,可以直接从代理服务器访问到网页。
 
+\begin{figure}[!h]
+\centering
+\includegraphics[width=.618\textwidth]{fig/2_1-4.png}
+\caption{拓扑图}\label{fig:Q2_1-4}
+\end{figure}
+
 \myparagraph{方法描述}
 
-为了一般化，本题同样用 Ryu Controller Python API 实现。采用 Ryu 内置的 simple\_switch\_13 简单处理路由。编写第三方 Ryu Controller App，在交换机 s3 连接 Controller 时为其添加默认流表，丢弃所有来自 h2 并且发往 h4 的数据包。
+拓扑图见\autoref{fig:Q2_1-4}。为了一般化，本题同样用 Ryu Controller Python API 实现。采用 Ryu 内置的 simple\_switch\_13 简单处理路由。编写第三方 Ryu Controller App，在交换机 s3 连接 Controller 时为其添加默认流表，丢弃所有来自 h2 并且发往 h4 的数据包。
 
 \myparagraph{实验步骤}
 
@@ -387,12 +393,6 @@ priority=65535,in\_port=1,dl\_src=00:00:00:00:00:02,dl\_dst=00:00:00:00:00:04 ac
 \caption{pingall结果与流表变化}\label{fig:Q2_1-2}
 \end{figure}
 
-\begin{figure}[!h]
-\centering
-\includegraphics[width=.618\textwidth]{fig/2_1-3.png}
-\caption{h1 h2 分别请求 h3 h4 网页的结果}\label{fig:Q2_1-3}
-\end{figure}
-
 4. 搭建 Web 服务器。先在 mininet CLI 中执行 \code{h3 xterm \&}, 在打开的 xterm 中执行 \code{cd web \&\& python -m SimpleHTTPServer 80}，再在 mininet CLI 中执行 \code{h4 xterm \&}, 在打开的 xterm 中执行 \code{cd proxy \&\& python -m SimpleHTTPServer 80}，至此，Web Server 和 Web Proxy Server 搭建完毕。
 
 5. 回到 mininet CLI 分别执行如下命令，得到输出如\autoref{fig:Q2_1-3}，说明只有 h2 无法访问 h4(proxy)。
@@ -403,6 +403,14 @@ h1 curl h4 -m 10
 h2 curl h3 -m 10
 h2 curl h4 -m 10
 \end{lstlisting}
+
+\global\csname @topnum\endcsname 0 % prevent figures breaking lstlisting
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=.618\textwidth]{fig/2_1-3.png}
+\caption{h1, h2 分别请求 h3, h4 网页的结果}\label{fig:Q2_1-3}
+\end{figure}
 
 \myparagraph{实验结果}
 
