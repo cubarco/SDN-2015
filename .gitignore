@@ -2,6 +2,7 @@
 known_flows
 **/env/
 .*~
+*.*~
 
 # tex
 **/output/*.bib
