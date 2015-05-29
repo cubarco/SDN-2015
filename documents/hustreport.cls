@@ -756,11 +756,10 @@
     {\HUST@zhtitlepage}
     {\HUST@entitlepage}
   \end{titlepage}
-  }
   \clearpage
   \let\thepage\HUST@oldthepage
   \setcounter{page}{1}
-
+}
 \let\makecover\maketitle
 \def\HUST@zhabstractpage{
   \chapter*{\HUST@zhabstractname}
