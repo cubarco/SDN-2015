@@ -6,6 +6,9 @@
     filecolor=magenta,
     urlcolor=cyan,
 }
+\lstset{language=sh,columns=fullflexible,frame=single}
+\newcommand{\myparagraph}[1]{\paragraph{#1}\mbox{}\\}
+\newcommand{\code}{\texttt}
 
 \title{初赛文档}
 \author{\kai{林家军}~~\kai{李英儒}~~\kai{胡云锐}}
@@ -89,29 +92,71 @@ Mininet 是由一些虚拟的终端节点(end-hosts)、交换机、路由器连�
 \section{第一题:基础题}\label{sec:Q1}
 \subsection{第1小题：简单网络}\label{sec:Q1_1}
 
-\begin{figure}[!h]
-\centering
+\begin{figure}[!h] \centering
 \includegraphics[width=.618\textwidth]{fig/1_1-0.png}
 \caption{第一题第1小题：简单网络}\label{fig:Q1_1-0}
 \end{figure}
 
-网络环境要求:
+\myparagraph{网络环境要求}
 
-要求搭建的网络环境如图 1 所示(controller 表示控制器, switch 表示交换机, host表示主机)。控制器可以自主选择,例如各种开源的控制器(Floodlight、Ryu、
+要求搭建的网络环境如图 1 所示(Controller 表示控制器, switch 表示交换机, host表示主机)。控制器可以自主选择,例如各种开源的控制器(Floodlight、Ryu、
 Nox、Beacon、Trema、OpenDaylight 等)。拓扑中各网络部件既可以是仿真环境实现(例如 mininet, OpenvSwtich 等),有条件的队伍也可以通过物理设备实现,
 各种方案不影响评分。试题中每道题都遵循这些要求,不再说明。
 
-操作要求:
+\myparagraph{操作要求}
 
 1.先使 Host1 可以 ping 通 Host2,Host2 也可以 ping 通 Host1。
 
 2.然后对流表进行操作,使 Host1 不能 ping 通 Host2, Host2 也不能 ping 通 Host1。
 
-实验报告要求:
+\myparagraph{方法描述}
 
-1.详细描述网络环境的搭建思路,列举选择的具体设备或者仿真软件,并说明其在网络环境中的作用。
+利用 mininet 创建虚拟环境，在虚拟交换机上直接修改流表。
 
-2.给出实现操作要求的具体步骤,以说明文字和截图展示。
+\myparagraph{实验步骤}
+
+1. 打开 mininet 创建一个拓扑，它包含一个交换机和两个主机。命令如下:
+
+\begin{lstlisting}
+mn --topo single,2
+\end{lstlisting}
+
+2. 在 mininet CLI 中检查环境，确认流表为空。
+
+3. 执行如下两条命令，添加流表，使两个虚拟主机可以通信。
+
+\begin{lstlisting}
+s1 ovs-ofctl add-flow "s1" in_port=1,action=output:2
+s1 ovs-ofctl add-flow "s1" in_port=2,action=output:1
+\end{lstlisting}
+
+4. 执行 \code{pingall} 检查网络环境，结果见\autoref{fig:Q1_1-1}，h1 与 h2 可以正常通信。
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=.618\textwidth]{fig/1_1-1.png}
+\caption{检查虚拟网络环境}\label{fig:Q1_1-1}
+\end{figure}
+
+5. 执行如下两条命令，删除添加的流表。
+
+\begin{lstlisting}
+s1 ovs-ofctl del-flows "s1" in_port=1
+s1 ovs-ofctl del-flows "s1" in_port=2
+\end{lstlisting}
+
+6. 执行 \code{pingall} 再次检查网络环境，结果见\autoref{fig:Q1_1-2}，h1 与 h2 无法正常通信。
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=.618\textwidth]{fig/1_1-2.png}
+\caption{删除流表后检查虚拟网络环境}\label{fig:Q1_1-2}
+\end{figure}
+
+\myparagraph{实验结果}
+
+通过修改交换机的流表，先后成功实现虚拟主机 h1 与 h2 能互相 ping 通，与 ping 不通。
+
 
 \subsection{第2小题：访问限制}\label{sec:Q1_2}
 
@@ -121,20 +166,147 @@ Nox、Beacon、Trema、OpenDaylight 等)。拓扑中各网络部件既可以是�
 \caption{第一题第1小题：访问限制}\label{fig:Q1_2-0}
 \end{figure}
 
-网络环境要求:
+\myparagraph{网络环境要求}
 
 设有一台 PC 机(Host1),一台 Web 服务器(Server1)提供简单的静态网页访问服务,如图 2 所示。(PC 机、Web 服务器、交换机、控制器可以选择物理设备或者虚拟设备实现)
 
-操作要求:
+\myparagraph{操作要求}
+
 1.先使得 PC 机访问服务器成功(即看到服务器的网页)。
 
 2.限制该 PC 机一定时间(比如一分钟)内再次访问服务器。限制时间过后,PC机可以成功访问服务器。
 
-实验报告要求:
+\myparagraph{方法描述}
 
-1.简要描述网络拓扑,给出拓扑图,说明用什么设备实现该拓扑。
+拓扑环境如\autoref{fig:Q1_2-0}，其中 h1 为客户机，h2 为服务器。
+为了一般性，我们编写了第三方 Ryu Controller App, 接收交换机连接 Controller 时发来的 Feature message, 并为交换机添加默认流表。
+首先保证主机 h1 和 h2 的正常通信，如果匹配到 h1 发来的 TCP 包，在送出 2 号端口的同时复制一份送给 Controller。
+Controller分析后，判断此包来源的 mac 是否在白名单中；若不在，放行 TCP 包 ACK 标志小于等于 1 的包，为交换机添加一个带有 60 秒 hard\_timeout 的 flow entry，丢弃所有来自此 mac 并且目的 mac 地址是主机 h2 的 http 包，同时将此 mac 加入白名单。
+60 秒过后，此 flow entry 过期，而来源 mac 已在白名单中，下次请求将不会阻止。
 
-2.给出操作步骤和实验数据,验证是否达到要求。
+\myparagraph{实验步骤}
+
+1. 执行如下命令，其中 setup\_network.py 用于搭建虚拟网络环境，执行该脚本需要 root 权限。1\_2.py 是我们编写的 Ryu Controller App。
+
+\begin{lstlisting}
+python2 setup_network.py
+ryu-manager 1_2.py
+\end{lstlisting}
+
+交换机连接 Controller 后，会往 Controller 发送 Feature message，以下代码将发挥作用。
+
+\begin{lstlisting}[language=python]
+...
+    @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
+    def switch_feature_handler(self, ev):
+        datapath = ev.msg.datapath
+        ofproto = datapath.ofproto
+        parser = datapath.ofproto_parser
+        dpid = datapath.id
+
+        self.logger.info("Switch %d connected, adding flow entries.", dpid)
+        match = parser.OFPMatch(in_port=1)
+        actions = [parser.OFPActionOutput(2, ofproto.OFPCML_NO_BUFFER)]
+        # Flow entry match structure: priority=0,in_port=1 actions=output:2
+        self.add_flow(datapath, 0, match, actions)
+
+        match = parser.OFPMatch(in_port=2)
+        actions = [parser.OFPActionOutput(1, ofproto.OFPCML_NO_BUFFER)]
+        # Flow entry match structure: priority=0,in_port=2 actions=output:1
+        self.add_flow(datapath, 0, match, actions)
+
+        if dpid == 2:
+            match = parser.OFPMatch(in_port=1, eth_type=PROTO_IP,
+                                    ip_proto=PROTO_TCP, tcp_dst=80)
+            actions = [parser.OFPActionOutput(2, ofproto.OFPCML_NO_BUFFER),
+                       parser.OFPActionOutput(ofproto.OFPP_CONTROLLER,
+                                              ofproto.OFPCML_NO_BUFFER)]
+            # Flow entry match structure:
+            # priority=1,tcp,in_port=1,tp_dst=80
+            # actions=output:2,CONTROLLER:65535
+            self.add_flow(datapath, 1, match, actions)
+
+...
+\end{lstlisting}
+
+2. 在 mininet CLI 中检查网络环境，结果如\autoref{fig:Q1_2-1}。
+
+3. 在 mininet CLI 中执行 \code{h2 xterm \&}，并在打开的 xterm 中执行 \code{python -m HTTPServer 80} 打开 Web 服务器。
+
+4. 回到 mininet CLI 中执行 \code{h1 curl h2}, 得到以下返回
+\begin{center}
+**this\_is\_the\_web\_page\_of\_problem\_1.2**
+\end{center}
+一分钟内再次执行 \code{h1 curl h2 -m 10}，超时。检查流表，结果如\autoref{fig:Q1_2-2}。
+
+Controller 接受到 PacketIn message 时，以下代码将会发挥作用。
+
+\begin{lstlisting}[language=python]
+...
+    @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
+    def _packet_in_handler(self, ev):
+        msg = ev.msg
+        datapath = msg.datapath
+        parser = datapath.ofproto_parser
+        in_port = msg.match['in_port']
+        dpid = datapath.id
+        pkt = packet.Packet(msg.data)
+        eth = pkt.get_protocols(ethernet.ethernet)[0]
+        dst = eth.dst
+        src = eth.src
+        tcp_p = pkt.get_protocols(tcp.tcp)
+
+        if dpid != 2 or src in self.macs or len(tcp_p) == 0:
+            return
+
+        tcp_p = tcp_p[0]
+        if tcp_p.ack <= 1:  # TCP three-way handshake and HTTP request
+            return
+
+        self.logger.info("First HTTP request from %s, adding flow entry.", src)
+
+        self.macs.append(src)
+        actions = []
+        match = parser.OFPMatch(in_port=in_port, eth_src=src, eth_dst=dst,
+                                eth_type=PROTO_IP, ip_proto=PROTO_TCP,
+                                tcp_dst=80)
+        # Flow entry match structure:
+        # priority=2,tcp,in_port=1,dl_src=xx:xx:xx:xx:xx:xx,
+        # dl_dst=xx:xx:xx:xx:xx:xx,tp_dst=80 actions=drop
+        self.add_flow(datapath, 2, match, actions, hard_timeout=60)
+
+...
+\end{lstlisting}
+
+\global\csname @topnum\endcsname 0 % prevent figures breaking lstlisting
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=.618\textwidth]{fig/1_2-1.png}
+\caption{检查网络环境}\label{fig:Q1_2-1}
+\end{figure}
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=.618\textwidth]{fig/1_2-2.png}
+\caption{}\label{fig:Q1_2-2}
+\end{figure}
+
+5. 等待 60 秒，多次执行 \code{h1 curl h2}，均能得到正常返回
+\begin{center}
+**this\_is\_the\_web\_page\_of\_problem\_1.2**
+\end{center}
+此时再检查流表，发现第 4 步时新增的流表已经过期。结果见\autoref{fig:Q1_2-3}
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=.618\textwidth]{fig/1_2-3.png}
+\caption{流表过期}\label{fig:Q1_2-3}
+\end{figure}
+
+\myparagraph{实验结果}
+
+利用 Ryu Controller 提供的 Python API，自动化实现问题要求。
 
 \section{第二题:提高题}\label{sec:Q2}
 \subsection{第1小题：代理访问}\label{sec:Q2_1}
@@ -145,24 +317,95 @@ Nox、Beacon、Trema、OpenDaylight 等)。拓扑中各网络部件既可以是�
 \caption{第二题第1小题：代理访问}\label{fig:Q2_1-0}
 \end{figure}
 
-网络环境要求:
+\myparagraph{网络环境要求}
 
 设有两台 PC 机(Host1,Host2),一台 Web 服务器(Server1)提供简单的静态网页访问服务,一台代理服务器(Proxy1)和 Web 服务器提供同样的服务,两
 台服务器所显示的网页大致相同,但要有显著差别,可以是不同的网页内容或者不同颜色,能够区分彼此即可,如图 3 所示。(PC 机、Web 服务器、代理服务器、交换机、控制器可以选择物理设备或者虚拟设备实现)
 
-操作要求:
+\myparagraph{操作要求}
 
 1.Web 服务器是 Host1 和 Host2 都可以访问的,而代理服务器是只有代理用户才可以使用。
 
 2 可以设置 Host1 或 Host2 为代理用户,可以直接从代理服务器访问到网页。
 
-实验报告要求:
+\myparagraph{方法描述}
 
-1.简要描述网络拓扑,给出拓扑图,说明用什么设备实现该拓扑。
+为了一般化，本题同样用 Ryu Controller Python API 实现。采用 Ryu 内置的 simple\_switch\_13 简单处理路由。编写第三方 Ryu Controller App，在交换机 s3 连接 Controller 时为其添加默认流表，丢弃所有来自 h2 并且发往 h4 的数据包。
 
-2.给出操作步骤。
+\myparagraph{实验步骤}
 
-3.给出实验数据,验证是否达到要求。
+1. 执行如下命令，其中 setup\_network.py 用于搭建虚拟网络环境，执行该脚本需要 root 权限。2\_1.py 是我们编写的 Ryu Controller App。
+
+\begin{lstlisting}
+python2 setup_network.py
+ryu-manager 2_1.py ryu.app.simple_switch_13
+\end{lstlisting}
+
+交换机连接 Controller 后,会往 Controller 发送 Feature message。此时 Ryu 的 simple\_switch\_13 和 2\_1.py 中注册的回调都会被调用。2\_1.py 中往 s3 交换机添加流表的如下代码将会发挥作用。
+
+\begin{lstlisting}
+...
+    @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
+    def switch_feature_handler(self, ev):
+        datapath = ev.msg.datapath
+        parser = datapath.ofproto_parser
+        dpid = datapath.id
+
+        print 'Switch s%d connected.' % dpid
+        if dpid == 3:
+            match = parser.OFPMatch(in_port=1,
+                                    eth_src=self.h2_mac, eth_dst=self.h4_mac)
+            actions = []  # Drop
+            # Flow entry:
+            # table=0, priority=65535,in_port=1,dl_src=00:00:00:00:00:02,
+            # dl_dst=00:00:00:00:00:04
+            # actions=drop
+            self.add_flow(datapath, 65535, match, actions)
+
+...
+\end{lstlisting}
+
+2. 在 mininet CLI 中检查网络环境，输出流表如\autoref{fig:Q2_1-1}，其中
+\begin{center}
+priority=65535,in\_port=1,dl\_src=00:00:00:00:00:02,dl\_dst=00:00:00:00:00:04 actions=drop
+\end{center}
+
+为 2\_1.py 为交换机 s3 添加的默认流表。
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=.618\textwidth]{fig/2_1-1.png}
+\caption{输出流表}\label{fig:Q2_1-1}
+\end{figure}
+
+3. 在 mininet CLI 中执行 pingall，检查网络环境，结果如\autoref{fig:Q2_1-2}，simple\_switch\_13 添加了多个流表保证网络通信。只有 h2 与 h4 互相无法 ping 通。
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=\textwidth]{fig/2_1-2.png}
+\caption{pingall结果与流表变化}\label{fig:Q2_1-2}
+\end{figure}
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=.618\textwidth]{fig/2_1-3.png}
+\caption{h1 h2 分别请求 h3 h4 网页的结果}\label{fig:Q2_1-3}
+\end{figure}
+
+4. 搭建 Web 服务器。先在 mininet CLI 中执行 \code{h3 xterm \&}, 在打开的 xterm 中执行 \code{cd web \&\& python -m SimpleHTTPServer 80}，再在 mininet CLI 中执行 \code{h4 xterm \&}, 在打开的 xterm 中执行 \code{cd proxy \&\& python -m SimpleHTTPServer 80}，至此，Web Server 和 Web Proxy Server 搭建完毕。
+
+5. 回到 mininet CLI 分别执行如下命令，得到输出如\autoref{fig:Q2_1-3}，说明只有 h2 无法访问 h4(proxy)。
+
+\begin{lstlisting}
+h1 curl h3 -m 10
+h1 curl h4 -m 10
+h2 curl h3 -m 10
+h2 curl h4 -m 10
+\end{lstlisting}
+
+\myparagraph{实验结果}
+
+利用 Ryu Controller 提供的 Python API,自动化实现问题要求。
 
 \subsection{第2小题：流表管理}\label{sec:Q2_2}
 
@@ -172,20 +415,14 @@ Nox、Beacon、Trema、OpenDaylight 等)。拓扑中各网络部件既可以是�
 \caption{第二题第2小题：流表管理}\label{fig:Q2_2-0}
 \end{figure}
 
-网络环境要求:
+\myparagraph{网络环境要求}
 
 设有若干台 PC 机(Host1,Host2),若干台交换机(Switch1,Switch2),如图 4所示(作为示例拓扑,实际拓扑可自由选择)。(PC 机、交换机、控制器可以选择物理设备或者虚拟设备实现)
 
-操作要求:
+\myparagraph{操作要求}
 
 利用控制器提供的 API(例如 REST API),开发一个网络及流表管理工具(客户端,网页端均可)。管理工具可以显示网络拓扑结构,查看流表,增加流表,删除流表。
-实验报告要求:
 
-1.简要描述网络拓扑,给出拓扑图,说明用什么设备实现该拓扑。
-
-2.给出开发管理工具的过程,以及代码。
-
-3.给出实验数据,验证是否达到要求。
 
 \section{第三题:设计题}\label{sec:Q3}
 
