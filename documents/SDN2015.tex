@@ -118,7 +118,7 @@ Nox、Beacon、Trema、OpenDaylight 等)。拓扑中各网络部件既可以是�
 
 1. 打开 mininet 创建一个拓扑，它包含一个交换机和两个主机。命令如下:
 
-\begin{lstlisting}[language=bash]
+\begin{lstlisting}
 mn --topo single,2
 \end{lstlisting}
 
@@ -179,36 +179,31 @@ s1 ovs-ofctl del-flows "s1" in_port=2
 
 \myparagraph{方法描述}
 
-拓扑环境如\autoref{fig:Q1_2-0}，其中 h1 为客户机，h2 为服务器。
+拓扑环境如\autoref{fig:Q1_2-0}，其中 Host1 为 h1，Server1 为 h2。
 
-为了一般性，我们编写了第三方 Ryu Controller App, 接收交换机连接 Controller 时发来的 Feature message, 并为交换机添加默认流表。
+为了一般性，我们编写了第三方 Ryu Controller App, 接收交换机连接 Controller 时发来的 Feature message, 并为交换机添加默认流表。与第一小题类似的，每个交换机各有两个 flow entry 保证主机 h1 和 h2 的正常通信。
 
-首先保证主机 h1 和 h2 的正常通信，如果流表匹配到 h1 发来的 TCP 包，在送出交换机 2 号端口的同时复制一份送给 Controller。
+s2 中有一个额外的 flow entry，实现将 h1 发来的 TCP 包，在送出交换机 2 号端口的同时复制一份送给 Controller。Controller分析后，检查此包来源的 mac 是否在白名单中，并判断此包是否为 TCP 三次握手包 ($ACK \leq 1$)。若此包并不是 TCP 三次握手包，而且其来源 mac 地址不在白名单中，Controller 将立即为交换机添加一个带有 60 秒 hard\_timeout 的 flow entry，丢弃所有来自此 mac 并且目的 mac 地址是主机 h2 的 http 包，阻断其请求，但是仍可接收来自 h2 的返回，之后将此 mac 加入白名单。
 
-Controller分析后，判断此包来源的 mac 是否在白名单中；
+60 秒过后，此 flow entry 过期，而来源 mac 已在白名单中，此后的请求将不会被阻止。
 
-若不在，放行 TCP 包 ACK 标志小于等于 1 的包，为交换机添加一个带有 60 秒 hard\_timeout 的 flow entry，丢弃所有来自此 mac 并且目的 mac 地址是主机 h2 的 http 包，同时将此 mac 加入白名单。
-
-60 秒过后，此 flow entry 过期，而来源 mac 已在白名单中，下次请求将不会阻止。
+流程伪代码如下:
 
 \begin{algorithm}[H]
 	\SetAlgoLined
 	\textbf{Initial}  $Ryu~Controller~\&~White~List = \varnothing$ \;\label{alg_line:Q1_2DataPlane}
 	\textbf{DATA PLANE}[Hardware Layer]\;
-	\While{Flowtable \textbf{Match} $TCP\_package$ from h1}{
-	\textbf{Send} $TCP\_package$ to $port~2$ and its copy to $Ryu Controller$ \;
+	\While{Flowtable \textbf{Match} $TCP\_packet$ from h1}{
+	\textbf{Send} $TCP\_packet$ to $port~2$ and its copy to $Ryu Controller$ \;
 	}
 
 	\textbf{CONTROL PLANE}[Software Layer]\;
-	\While{\textbf{Recieve} $TCP\_package$}{
-		\If{$TCP\_package.source\_mac \notin White List$}{
-			\If{$TCP\_package.ACK \leq 1 $}{
-				\textbf{Pass} $TCP\_package$ \;
+	\While{\textbf{Recieve} $TCP\_packet$}{
+        \If{$TCP\_packet.source\_mac \notin White List$ \textbf{and} $TCP\_packet.ACK > 1$}{
 
-				\textbf{Send} Flow Entry with $hard\_timeout=60$ to \textbf{Drop} $HTTP~Package$ from $TCP\_package.source\_mac$ to $h2.mac$\;
+				\textbf{Send} Flow Entry with $hard\_timeout=60$ to \textbf{Drop} $HTTP~Package$ from $TCP\_packet.source\_mac$ to $h2.mac$\;
 
-				$White~List \Leftarrow White~List \cup \{TCP\_package.source\_mac\}$ \;
-			}
+				$White~List \Leftarrow White~List \cup \{TCP\_packet.source\_mac\}$ \;
 		}
 	}
 	\caption{Visiting Constraints using SDN}\label{alg:Q1_2}
@@ -218,7 +213,7 @@ Controller分析后，判断此包来源的 mac 是否在白名单中；
 
 1. 执行如下命令，其中 setup\_network.py 用于搭建虚拟网络环境，执行该脚本需要 root 权限。1\_2.py 是我们编写的 Ryu Controller App。
 
-\begin{lstlisting}[language=bash]
+\begin{lstlisting}
 python2 setup_network.py
 ryu-manager 1_2.py
 \end{lstlisting}
@@ -372,7 +367,7 @@ Controller 接受到 PacketIn message 时，以下代码将会发挥作用。
 
 1. 执行如下命令，其中 setup\_network.py 用于搭建虚拟网络环境，执行该脚本需要 root 权限。2\_1.py 是我们编写的 Ryu Controller App。
 
-\begin{lstlisting}[language=bash]
+\begin{lstlisting}
 python2 setup_network.py
 ryu-manager 2_1.py ryu.app.simple_switch_13
 \end{lstlisting}
