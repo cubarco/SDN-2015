@@ -158,6 +158,7 @@ s1 ovs-ofctl del-flows "s1" in_port=2
 
 通过修改交换机的流表，先后成功实现虚拟主机 h1 与 h2 能互相 ping 通，与 ping 不通。
 
+\clearpage
 
 \subsection{第2小题：访问限制}\label{sec:Q1_2}
 
@@ -211,7 +212,7 @@ s2 中有一个额外的 flow entry，实现将 h1 发来的 TCP 包，在送出
 
 \myparagraph{实验步骤}
 
-1. 执行如下命令，其中 setup\_network.py 用于搭建虚拟网络环境，执行该脚本需要 root 权限。1\_2.py 是我们编写的 Ryu Controller App。
+1. 进入附件 1.1 目录，执行如下命令，其中 setup\_network.py 用于搭建虚拟网络环境，执行该脚本需要 root 权限。1\_2.py 是我们编写的 Ryu Controller App。
 
 \begin{lstlisting}
 python2 setup_network.py
@@ -314,10 +315,10 @@ Controller 接受到 PacketIn message 时，以下代码将会发挥作用。
 \begin{figure}[!h]
 \centering
 \includegraphics[width=.618\textwidth]{fig/1_2-2.png}
-\caption{}\label{fig:Q1_2-2}
+\caption{检查流表}\label{fig:Q1_2-2}
 \end{figure}
 
-5. 等待 60 秒，多次执行 \code{h1 curl h2}，均能得到正常返回
+5. 等待 60 秒，多次执行 \code{h1 curl h2}，均能得到如下正常返回
 \begin{center}
 **this\_is\_the\_web\_page\_of\_problem\_1.2**
 \end{center}
@@ -332,6 +333,8 @@ Controller 接受到 PacketIn message 时，以下代码将会发挥作用。
 \myparagraph{实验结果}
 
 利用 Ryu Controller 提供的 Python API，自动化实现问题要求。
+
+\clearpage
 
 \section{第二题:提高题}\label{sec:Q2}
 \subsection{第1小题：代理访问}\label{sec:Q2_1}
@@ -365,7 +368,7 @@ Controller 接受到 PacketIn message 时，以下代码将会发挥作用。
 
 \myparagraph{实验步骤}
 
-1. 执行如下命令，其中 setup\_network.py 用于搭建虚拟网络环境，执行该脚本需要 root 权限。2\_1.py 是我们编写的 Ryu Controller App。
+1. 进入附件 2.1 目录，执行如下命令，其中 setup\_network.py 用于搭建虚拟网络环境，执行该脚本需要 root 权限。2\_1.py 是我们编写的 Ryu Controller App。
 
 \begin{lstlisting}
 python2 setup_network.py
@@ -403,19 +406,7 @@ priority=65535,in\_port=1,dl\_src=00:00:00:00:00:02,dl\_dst=00:00:00:00:00:04 ac
 
 为 2\_1.py 为交换机 s3 添加的默认流表。
 
-\begin{figure}[!h]
-\centering
-\includegraphics[width=.618\textwidth]{fig/2_1-1.png}
-\caption{输出流表}\label{fig:Q2_1-1}
-\end{figure}
-
 3. 在 mininet CLI 中执行 pingall，检查网络环境，结果如\autoref{fig:Q2_1-2}，simple\_switch\_13 添加了多个流表保证网络通信。只有 h2 与 h4 互相无法 ping 通。
-
-\begin{figure}[!h]
-\centering
-\includegraphics[width=\textwidth]{fig/2_1-2.png}
-\caption{pingall结果与流表变化}\label{fig:Q2_1-2}
-\end{figure}
 
 4. 搭建 Web 服务器。先在 mininet CLI 中执行 \code{h3 xterm \&}, 在打开的 xterm 中执行 \code{cd web \&\& python -m SimpleHTTPServer 80}，再在 mininet CLI 中执行 \code{h4 xterm \&}, 在打开的 xterm 中执行 \code{cd proxy \&\& python -m SimpleHTTPServer 80}，至此，Web Server 和 Web Proxy Server 搭建完毕。
 
@@ -432,13 +423,28 @@ h2 curl h4 -m 10
 
 \begin{figure}[!h]
 \centering
-\includegraphics[width=.618\textwidth]{fig/2_1-3.png}
-\caption{h1, h2 分别请求 h3, h4 网页的结果}\label{fig:Q2_1-3}
+\includegraphics[width=.618\textwidth]{fig/2_1-1.png}
+\caption{输出流表}\label{fig:Q2_1-1}
 \end{figure}
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=\textwidth]{fig/2_1-2.png}
+\caption{pingall结果与流表变化}\label{fig:Q2_1-2}
+\end{figure}
+
 
 \myparagraph{实验结果}
 
 利用 Ryu Controller 提供的 Python API,自动化实现问题要求。
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=.618\textwidth]{fig/2_1-3.png}
+\caption{h1, h2 分别请求 h3, h4 网页的结果}\label{fig:Q2_1-3}
+\end{figure}
+
+\clearpage
 
 \subsection{第2小题：流表管理}\label{sec:Q2_2}
 
@@ -456,6 +462,110 @@ h2 curl h4 -m 10
 
 利用控制器提供的 API(例如 REST API),开发一个网络及流表管理工具(客户端,网页端均可)。管理工具可以显示网络拓扑结构,查看流表,增加流表,删除流表。
 
+\myparagraph{方法描述}
+
+基于 Ryu 提供的北向接口开源实现，添加了少量独立开发的北向接口作为管理工具与 Controller 交互的接口，封装实现网络及流表的管理后台，前端使用 d3.js 绘制拓扑结构，并使用 Bootstrap 框架构建网页端。
+
+\myparagraph{实验步骤}
+
+1. 进入附件 2.2 目录，执行如下代码运行管理工具后端。
+
+\begin{lstlisting}
+ryu-manager --observe-links ryu.app.ofctl_rest rest_topology.py simple_switch_13.py
+python wrapper.py
+\end{lstlisting}
+
+此时便可以通过 \url{http://localhost:8000/static/index.html} 预览管理工具，但是在交换机连接 Controller 之前，网页端不会显示任何相关信息。
+
+补充说明：为了支持在网络拓扑中显示主机，我们对 Ryu 提供的 rest\_topology.py 进行了简单的修改，通过监测网络中通过交换机的 ARP 包和 IPv4 包，维护一个主机的状态表，并在前端请求拓扑结构时返回。 我们还对 simple\_switch\_13.py 进行了修改，让其添加的路由 flow entry 拥有过期时间，便于 Controller 及时更新状态表。
+
+2. 执行如下命令，用 mininet 构建虚拟网络环境，并连接 Controller.
+\begin{lstlisting}
+sudo mn --switch ovsk --topo tree,3,fanout=3 --controller remote,ip=127.0.0.1
+\end{lstlisting}
+
+3. 在 mininet CLI 中执行 \code{pingall}，让 Controller 发现主机。
+
+4. 访问 \url{http://localhost:8000/static/index.html} ，可以看到拓扑图以及所有交换机上的流表。之后如若交换机甚至是整个网络环境断开重新连接，只需要点击两个 Refresh 按钮刷新即可。
+
+网络拓扑部分显示如\autoref{fig:Q2_2-1}。
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=.7\textwidth]{fig/2_2-1.png}
+\caption{网络拓扑图}\label{fig:Q2_2-1}
+\end{figure}
+
+流表部分显示如\autoref{fig:Q2_2-2}。
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=.7\textwidth]{fig/2_2-2.png}
+\caption{流表管理}\label{fig:Q2_2-2}
+\end{figure}
+
+5. 预设若 6 分钟无某主机的包通过交换机，将会从状态表中删除该主机的记录。6 分钟后点击 Refresh 按钮，网络拓扑如\autoref{fig:Q2_2-3}。
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=.4\textwidth]{fig/2_2-3.png}
+\caption{6 分钟后的网络拓扑图}\label{fig:Q2_2-3}
+\end{figure}
+
+6. 测试删除 flow entry 的功能：勾选相应的 flow entry ，点击 Delete 按钮，确认后，相应的 flow entry 将会被删除，并从网页中消失，过程见\autoref{fig:Q2_2-S1}。
+
+注意: 选择相应 flow entry 之前务必点击 Refresh 按钮刷新。
+
+\begin{figure}[!h]
+\centering
+  \begin{subfigure}[b]{.45\textwidth}
+  \includegraphics[width=\textwidth]{fig/2_2-4}
+  \caption{选中与 s3 交换机相关的 flow entry}\label{fig:Q2_2-4}
+  \end{subfigure}
+  ~
+  \begin{subfigure}[b]{.45\textwidth}
+  \includegraphics[width=\textwidth]{fig/2_2-5}
+  \caption{删除后}\label{fig:Q2_2-5}
+  \end{subfigure}
+\caption{删除流表操作}\label{fig:Q2_2-S1}
+\end{figure}
+
+从 \autoref{fig:Q2_2-1} 可以看到，主机 h1 直接接在 s3 交换机上，所以在 mininet CLI 中执行如下命令：
+\begin{lstlisting}
+h1 ping h4
+h1 ping h5
+h4 ping h5
+\end{lstlisting}
+
+结果如\autoref{fig:Q2_2-6}所示，h1 无法与外界通信，而 s1 交换机外的环境通信正常，说明 flow entry 成功删除。
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=.618\textwidth]{fig/2_2-6.png}
+\caption{ping 结果图}\label{fig:Q2_2-6}
+\end{figure}
+
+7. 测试添加 flow entry 的功能：在上述实验步骤的前提下，点击 Add 按钮，填写相关信息(match 项填空格表示匹配所有)。如\autoref{fig:Q2_2-7}，output 端口填 \code{4294967293} 表示发给 Controller. 再次点击 Add 按钮添加，如果添加成功将在网页上显示新的 flow entry.
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=.618\textwidth]{fig/2_2-7.png}
+\caption{添加 flow entry}\label{fig:Q2_2-7}
+\end{figure}
+
+在 mininet CLI 中执行 \code{pingall}，发现 h1 能 ping 通所有主机，结果见\autoref{fig:Q2_2-8}，表示 flow entry添加成功。
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=.5\textwidth]{fig/2_2-8.png}
+\caption{添加 flow entry 后 pingall}\label{fig:Q2_2-8}
+\end{figure}
+
+\myparagraph{实验结果}
+
+显示网络拓扑图，查看流表，增加流表，删除流表等功能测试成功。
+
+\clearpage
 
 \section{第三题:设计题}\label{sec:Q3}
 
