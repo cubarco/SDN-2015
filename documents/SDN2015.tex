@@ -4,7 +4,7 @@
     colorlinks=true,
     linkcolor=blue,
     filecolor=magenta,
-    urlcolor=cyan,
+    urlcolor=blue
 }
 \lstset{language=sh,columns=fullflexible,frame=single}
 \newcommand{\myparagraph}[1]{\paragraph{#1}\mbox{}\\}
@@ -30,8 +30,8 @@
 \maketitle
 \makeabstract
 \tableofcontents
-\listoffigures
-\listoftables
+%\listoffigures
+%\listoftables
 \mainmatter
 
 \chapter{基础环境}\label{chapter:BaiscEnv}
@@ -99,23 +99,19 @@ Mininet 是由一些虚拟的终端节点(end-hosts)、交换机、路由器连�
 \end{figure}
 
 \myparagraph{网络环境要求}
-
 要求搭建的网络环境如图 1 所示(Controller 表示控制器, switch 表示交换机, host表示主机)。控制器可以自主选择,例如各种开源的控制器(Floodlight、Ryu、
 Nox、Beacon、Trema、OpenDaylight 等)。拓扑中各网络部件既可以是仿真环境实现(例如 mininet, OpenvSwtich 等),有条件的队伍也可以通过物理设备实现,
 各种方案不影响评分。试题中每道题都遵循这些要求,不再说明。
 
 \myparagraph{操作要求}
-
 1.先使 Host1 可以 ping 通 Host2,Host2 也可以 ping 通 Host1。
 
 2.然后对流表进行操作,使 Host1 不能 ping 通 Host2, Host2 也不能 ping 通 Host1。
 
 \myparagraph{方法描述}
-
 利用 mininet 创建虚拟环境，在虚拟交换机上直接修改流表。
 
 \myparagraph{实验步骤}
-
 1. 打开 mininet 创建一个拓扑，它包含一个交换机和两个主机。命令如下:
 
 \begin{lstlisting}
@@ -155,7 +151,6 @@ s1 ovs-ofctl del-flows "s1" in_port=2
 \end{figure}
 
 \myparagraph{实验结果}
-
 通过修改交换机的流表，先后成功实现虚拟主机 h1 与 h2 能互相 ping 通，与 ping 不通。
 
 \clearpage
@@ -169,17 +164,14 @@ s1 ovs-ofctl del-flows "s1" in_port=2
 \end{figure}
 
 \myparagraph{网络环境要求}
-
 设有一台 PC 机(Host1),一台 Web 服务器(Server1)提供简单的静态网页访问服务,如图 2 所示。(PC 机、Web 服务器、交换机、控制器可以选择物理设备或者虚拟设备实现)
 
 \myparagraph{操作要求}
-
 1.先使得 PC 机访问服务器成功(即看到服务器的网页)。
 
 2.限制该 PC 机一定时间(比如一分钟)内再次访问服务器。限制时间过后,PC机可以成功访问服务器。
 
 \myparagraph{方法描述}
-
 拓扑环境如\autoref{fig:Q1_2-0}，其中 Host1 为 h1，Server1 为 h2。
 
 为了一般性，我们编写了第三方 Ryu Controller App, 接收交换机连接 Controller 时发来的 Feature message, 并为交换机添加默认流表。与第一小题类似的，每个交换机各有两个 flow entry 保证主机 h1 和 h2 的正常通信。
@@ -211,7 +203,6 @@ s2 中有一个额外的 flow entry，实现将 h1 发来的 TCP 包，在送出
 \end{algorithm}
 
 \myparagraph{实验步骤}
-
 1. 进入附件 1.1 目录，执行如下命令，其中 setup\_network.py 用于搭建虚拟网络环境，执行该脚本需要 root 权限。1\_2.py 是我们编写的 Ryu Controller App。
 
 \begin{lstlisting}
@@ -331,7 +322,6 @@ Controller 接受到 PacketIn message 时，以下代码将会发挥作用。
 \end{figure}
 
 \myparagraph{实验结果}
-
 利用 Ryu Controller 提供的 Python API，自动化实现问题要求。
 
 \clearpage
@@ -346,12 +336,10 @@ Controller 接受到 PacketIn message 时，以下代码将会发挥作用。
 \end{figure}
 
 \myparagraph{网络环境要求}
-
 设有两台 PC 机(Host1,Host2),一台 Web 服务器(Server1)提供简单的静态网页访问服务,一台代理服务器(Proxy1)和 Web 服务器提供同样的服务,两
 台服务器所显示的网页大致相同,但要有显著差别,可以是不同的网页内容或者不同颜色,能够区分彼此即可,如图 3 所示。(PC 机、Web 服务器、代理服务器、交换机、控制器可以选择物理设备或者虚拟设备实现)
 
 \myparagraph{操作要求}
-
 1.Web 服务器是 Host1 和 Host2 都可以访问的,而代理服务器是只有代理用户才可以使用。
 
 2 可以设置 Host1 或 Host2 为代理用户,可以直接从代理服务器访问到网页。
@@ -363,11 +351,9 @@ Controller 接受到 PacketIn message 时，以下代码将会发挥作用。
 \end{figure}
 
 \myparagraph{方法描述}
-
 拓扑图见\autoref{fig:Q2_1-4}。为了一般化，本题同样用 Ryu Controller Python API 实现。采用 Ryu 内置的 simple\_switch\_13 简单处理路由。编写第三方 Ryu Controller App，在交换机 s3 连接 Controller 时为其添加默认流表，丢弃所有来自 h2 并且发往 h4 的数据包。
 
 \myparagraph{实验步骤}
-
 1. 进入附件 2.1 目录，执行如下命令，其中 setup\_network.py 用于搭建虚拟网络环境，执行该脚本需要 root 权限。2\_1.py 是我们编写的 Ryu Controller App。
 
 \begin{lstlisting}
@@ -435,7 +421,6 @@ h2 curl h4 -m 10
 
 
 \myparagraph{实验结果}
-
 利用 Ryu Controller 提供的 Python API,自动化实现问题要求。
 
 \begin{figure}[!h]
@@ -455,19 +440,15 @@ h2 curl h4 -m 10
 \end{figure}
 
 \myparagraph{网络环境要求}
-
 设有若干台 PC 机(Host1,Host2),若干台交换机(Switch1,Switch2),如图 4所示(作为示例拓扑,实际拓扑可自由选择)。(PC 机、交换机、控制器可以选择物理设备或者虚拟设备实现)
 
 \myparagraph{操作要求}
-
 利用控制器提供的 API(例如 REST API),开发一个网络及流表管理工具(客户端,网页端均可)。管理工具可以显示网络拓扑结构,查看流表,增加流表,删除流表。
 
 \myparagraph{方法描述}
-
 基于 Ryu 提供的北向接口开源实现，添加了少量独立开发的北向接口作为管理工具与 Controller 交互的接口，封装实现网络及流表的管理后台，前端使用 d3.js 绘制拓扑结构，并使用 Bootstrap 框架构建网页端。
 
 \myparagraph{实验步骤}
-
 1. 进入附件 2.2 目录，执行如下代码运行管理工具后端。
 
 \begin{lstlisting}
@@ -518,12 +499,12 @@ sudo mn --switch ovsk --topo tree,3,fanout=3 --controller remote,ip=127.0.0.1
 
 \begin{figure}[!h]
 \centering
-  \begin{subfigure}[b]{.45\textwidth}
+  \begin{subfigure}[b]{.48\textwidth}
   \includegraphics[width=\textwidth]{fig/2_2-4}
   \caption{选中与 s3 交换机相关的 flow entry}\label{fig:Q2_2-4}
   \end{subfigure}
   ~
-  \begin{subfigure}[b]{.45\textwidth}
+  \begin{subfigure}[b]{.48\textwidth}
   \includegraphics[width=\textwidth]{fig/2_2-5}
   \caption{删除后}\label{fig:Q2_2-5}
   \end{subfigure}
@@ -562,187 +543,135 @@ h4 ping h5
 \end{figure}
 
 \myparagraph{实验结果}
-
 显示网络拓扑图，查看流表，增加流表，删除流表等功能测试成功。
 
 \clearpage
 
 \section{第三题:设计题}\label{sec:Q3}
 
-\subsubsection{第三层}\label{sec:3}
-测试测试测试测试测试测试测试测试测试测试测试测试。
-\footnote{\label{footnote:1}脚注}
+\myparagraph{选题背景}
+随着互联网逐渐渗透到人们生活的每一个角落，人们的生活也变得越来越便利了。但是网络也是一把双刃剑。在它越来越多的控制人们的生活的同时，它不安全的一面也渐渐暴露出来。网络攻击随处可见，造成了难以估计的损失。对于一般民众而言，恶意网站、钓鱼链接是对他们数据、财产安全最大的威胁，需要小心应对。
 
-\section{字体}
+\myparagraph{设计细节}
+\begin{figure}[!h]
+\centering
+\includegraphics[width=.5\textwidth]{fig/3_0-0}
+\caption{设计题网络拓扑图}\label{fig:Q3-0-0}
+\end{figure}
 
-普通\textbf{粗体}\emph{斜体}
+如\autoref{fig:Q3-0-0}所示，网络为线性拓扑，共4个host，分别与4个交换机相连（s1,s2,s3,s4）。这四个交换机互相之间也有连接。为了使hosts可以访问外网，故使用了nat参数使得本机桥接到 mininet 虚拟网络环境内，作为 h5 连接在s1上。h1,h2的网关是h3。将controller上的dnsserver设置为h4的mac地址，将dns请求全部劫持到h4上。h4上运行fakedns.py来处理所有dns请求。
 
-\hei{黑体}\kai{楷体}\fangsong{仿宋}
+设计与实现方案：controller 运行一个经过修改的交换机算法。对于除dns包以外的数据包按正常的交换机进行学习和转发，对于dns查询数据包则将目的mac地址强制设为dnsserver然后再进行交换算法。这样就可以将dns查询报文劫持到h4上。而h4上运行的fakedns将过滤出所有dns包并检查其查询的网址是否在黑名单中，若在黑名单中则不进行响应，否则将该数据包正常送往网关，然后将回应数据包转回来源host。
 
-\section{公式}
+\myparagraph{实验步骤}
+\begin{figure}[!h]
+\centering
+\includegraphics[width=.5\textwidth]{fig/3_0}
+\caption{创建网络拓扑}\label{fig:Q3-0}
+\end{figure}
 
-单个公式，公式引用：\autoref{eq:1}。
-\begin{equation}
- c^2 = a^2 + b^2 \label{eq:1}
-\end{equation}
-
-多个公式，公式引用：\autoref{eq:2}，\autoref{eq:3}。
-
-\begin{subequations}
-\begin{equation}
-  F = ma \label{eq:2}
-\end{equation}
-\begin{equation}
-  E = mc^2 \label{eq:3}
-\end{equation}
-\end{subequations}
-
-\section{罗列环境}
-
-\begin{enumerate}
-    \item 第一层\label{item:1}
-    \item 第一层
-    \begin{enumerate}
-        \item 第二层\label{item:2}
-        \item 第二层
-        \begin{enumerate}
-            \item 第三层\label{item:3}
-            \item 第三层
-        \end{enumerate}
-    \end{enumerate}
-\end{enumerate}
-
-\begin{description}
-    \item[解释环境]  解释内容
-\end{description}
-
-\chapter{其他格式测试}
-
-\section{代码环境}
-
-\begin{lstlisting}[language=python]
-import os
-
-def main():
-    '''
-    doc here
-    '''
-    print 'hello, world' # Abc
-    print 'hello, 中文' # 中文
+1. 执行如下命令创建网络拓扑，得到如\autoref{fig:Q3-0}的网络结构。
+\begin{lstlisting}
+mn --controller=remote --topo=linear,4 --nat
 \end{lstlisting}
 
-\section{定律证明环境}
+2. 进入附件的目录 3，执行如下命令运行 Controller:
+\begin{lstlisting}
+ryu-manager 3.py
+\end{lstlisting}
 
-\begin{definition}\label{def:1}
-这是一个定义。
-\end{definition}
-\begin{proposition}\label{proposition:1}
-这是一个命题。
-\end{proposition}
-\begin{axiom}\label{axiom:1}
-这是一个公理。
-\end{axiom}
-\begin{lemma}\label{lemma:1}
-这是一个引理。
-\end{lemma}
-\begin{theorem}\label{theorem:1}
-这是一个定理。
-\end{theorem}
-\begin{proof}\label{proof:1}
-这是一个证明。
-\end{proof}
-
-\section{算法环境}
-
-\begin{algorithm}[H]
-\SetAlgoLined
-\KwData{this text}
-\KwResult{how to write algorithm with \LaTeX2e }
-initialization\;\label{alg_line:1}
-\While{not at end of this document}{
-read current\;
-\eIf{understand}{
-go to next section\;
-current section becomes this one\;
-}{
-go back to the beginning of current section\;
-}
-}
-\caption{How to write algorithms}\label{alg:1}
-\end{algorithm}
-
-\section{表格}
-表格见\autoref{tab:1}。
-
-\begin{table}[!h]
-\centering
-\caption{一个表格}\label{tab:1}
-\begin{tabular}{|c|c|}
-\hline
-a & b \\
-\hline
-c & d \\
-\hline
-\end{tabular}
-\end{table}
-\section{图片}
-图片见\autoref{fig:1}。图片格式支持eps，png，pdf等。多个图片见\autoref{fig:2}，分开引用：\autoref{fig:2-1}，\autoref{fig:2-2}。
+3. 在 mininet CLI 中执行 \code{pingall}，结果如\autoref{fig:Q3-5}，说明通信正常。
 
 \begin{figure}[!h]
 \centering
-\includegraphics[width=.4\textwidth]{fig/fig-example.pdf}
-\caption{一个图片}\label{fig:1}
+\includegraphics[width=.5\textwidth]{fig/3_5}
+\caption{检查网络环境}\label{fig:Q3-5}
 \end{figure}
 
+4. 检查各主机网络设置，结果见\autoref{fig:Q3-1}，\autoref{fig:Q3-3}，\autoref{fig:Q3-4}。在 mininet CLI 中执行\code{h1 ip r replace default via 10.0.0.3}配置h1的默认路由，并执行 \code{h1 ip r} 检查结果，见 \autoref{fig:Q3-2}。
 \begin{figure}[!h]
 \centering
-  \begin{subfigure}[b]{0.3\textwidth}
-  \includegraphics[width=\textwidth]{fig/fig-example.pdf}
-  \caption{图片1}\label{fig:2-1}
+  \begin{subfigure}[b]{0.48\textwidth}
+  \includegraphics[width=\textwidth]{fig/3_1}
+  \caption{h1 网络设置}\label{fig:Q3-1}
   \end{subfigure}
   ~
-  \begin{subfigure}[b]{0.3\textwidth}
-  \includegraphics[width=\textwidth]{fig/fig-example.pdf}
-  \caption{图片2}\label{fig:2-2}
+  \begin{subfigure}[b]{0.48\textwidth}
+  \includegraphics[width=\textwidth]{fig/3_3}
+  \caption{h3 网络设置}\label{fig:Q3-3}
   \end{subfigure}
-\caption{多个图片}\label{fig:2}
+  ~
+  \begin{subfigure}[b]{0.48\textwidth}
+  \includegraphics[width=\textwidth]{fig/3_4}
+  \caption{h4 网络设置}\label{fig:Q3-4}
+  \end{subfigure}
+  ~
+  \begin{subfigure}[b]{0.48\textwidth}
+  \includegraphics[width=\textwidth]{fig/3_2}
+  \caption{h1 的路由表配置}\label{fig:Q3-2}
+  \end{subfigure}
+\caption{各主机网络设置}\label{fig:Q3-S1}
 \end{figure}
 
-\section{参考文献示例}
-这是一篇中文参考文献\cite{TEXGURU99}；这是一篇英文参考文献\cite{knuth}；同时引用\cite{TEXGURU99,knuth}。
+5. 在 h4 上运行fakedns.py，配置文件中默认屏蔽baidu.*，如\autoref{fig:Q3-6}
+\begin{figure}[!h]
+\centering
+\includegraphics[width=.618\textwidth]{fig/3_6}
+\caption{运行 fakedns.py}\label{fig:Q3-6}
+\end{figure}
 
-\section[\textbackslash{}autoref 测试]{\texttt{\textbackslash{}autoref} 测试}
+6. 在 mininet CLI 中执行 \code{h1 nslookup www.google.com}，结果如\autoref{fig:Q3-8}，正常得到返回。
+fakedns.py 的日志见\autoref{fig:Q3-9}。
+\begin{figure}[!h]
+\centering
+  \begin{subfigure}[b]{0.48\textwidth}
+  \includegraphics[width=\textwidth]{fig/3_8}
+  \caption{查询 www.google.com 的 DNS 记录}\label{fig:Q3-8}
+  \end{subfigure}
+  ~
+  \begin{subfigure}[b]{0.48\textwidth}
+  \includegraphics[width=\textwidth]{fig/3_9}
+  \caption{fakedns.py 的日志}\label{fig:Q3-9}
+  \end{subfigure}
+\caption{www.baidu.com 的 DNS 记录查询情况}\label{fig:Q3-S2}
+\end{figure}
 
-\begin{description}
-  \item[公式] \autoref{eq:1}
-  \item[脚注] \autoref{footnote:1}
-  \item[项] \autoref{item:1},\autoref{item:2},\autoref{item:3}
-  \item[图] \autoref{fig:1}
-  \item[表] \autoref{tab:1}
-  \item[附录] \autoref{appendix:1}
-  \item[章] \autoref{chapter:BaiscEnv}
-  \item[小节] \autoref{sec:Q1},\autoref{sec:Q1_1},\autoref{sec:Q2}
-  \item[算法] \autoref{alg:1},\autoref{alg_line:1}
-  \item[证明环境] \autoref{def:1},\autoref{proposition:1},\autoref{axiom:1},\autoref{lemma:1},\autoref{theorem:1},\autoref{proof:1}
-\end{description}
+7. 在 mininet CLI 中执行 \code{h1 nslookup www.baidu.com}，结果如\autoref{fig:Q3-11}，查询超时。fakedns.py 的日志见\autoref{fig:Q3-12}。
+\begin{figure}[!h]
+\centering
+  \begin{subfigure}[b]{0.48\textwidth}
+  \includegraphics[width=\textwidth]{fig/3_11}
+  \caption{查询 www.baidu.com 的 DNS 记录}\label{fig:Q3-11}
+  \end{subfigure}
+  ~
+  \begin{subfigure}[b]{0.48\textwidth}
+  \includegraphics[width=\textwidth]{fig/3_12}
+  \caption{fakedns.py 的日志}\label{fig:Q3-12}
+  \end{subfigure}
+\caption{www.baidu.com 的 DNS 记录查询情况}\label{fig:Q3-S3}
+\end{figure}
+
+\myparagraph{试验结果}
+此方案可以成功阻止对恶意网址的dns查询，进而保护用户安全
+\clearpage
 
 \backmatter
 
-\begin{ack}
-致谢正文。
-\end{ack}
+%\begin{ack}
+%致谢正文。
+%\end{ack}
 
-\bibliography{ref-example}
+\bibliography{ref}
 
-\appendix
+%\appendix
 
-\begin{publications}
-    \item 论文1
-    \item 论文2
-\end{publications}
+%\begin{publications}
+    %\item 论文1
+    %\item 论文2
+%\end{publications}
 
-\chapter{这是一个附录}\label{appendix:1}
-附录正文。
+%\chapter{这是一个附录}\label{appendix:2}
+%附录正文。
 
 
 \end{document}

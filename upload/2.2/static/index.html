@@ -1,0 +1,211 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="topo.css" type="text/css" rel="stylesheet"/>
+  <link rel="stylesheet" href="bootstrap-table.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="d3.v3.min.js" charset="utf-8"></script>
+  <script>
+function refresh_fts() {
+    $('#fts').bootstrapTable('refresh');
+}
+
+function delete_n_refresh() {
+    var resp = [];
+    $('#fts .selected').each(function(index) {
+        resp.push($(this).data('index'));
+    });
+    if (resp.length != 0) {
+        $.ajax({
+            type: "POST",
+            url: "/delete",
+            data: JSON.stringify(resp),
+            contentType: "application/json"
+        });
+        refresh_fts();
+    }
+}
+
+function add_n_refresh() {
+    var dpid = $("#dpid").val();
+    var match = $("#match").val();
+    var actions = $("#actions").val();
+    if (dpid == "") {
+        alert("dpid should not be empty.");
+        return;
+    }
+    if (match == "") {
+        alert("match should not be empty.");
+        return;
+    }
+    if (actions == "") {
+        alert("actions should not be empty.");
+        return;
+    }
+    $.post('/add', $('#add_form').serialize());
+    $('#addModal').modal('toggle');
+    refresh_fts();
+}
+  </script>
+</head>
+
+<body data-spy="scroll" data-target="#navbar-whatever">
+
+  <!-- nav bar -->
+  <nav class="navbar navbar-default navbar-fixed-top navbar-inverse" role="navigation" id="navbar-whatever">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#nav-id">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#">UniqueSDNStudio</a>
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="nav-id">
+      <ul class="nav navbar-nav">
+        <li>
+          <a href="#nt">Network Topology</a>
+        </li>
+        <li>
+          <a href="#ftm">Flow Table Modification</a>
+        </li>
+      </ul>
+
+    </div>
+    <!-- /.navbar-collapse -->
+  </nav>
+  <!-- nav bar closed -->
+
+  <div class="container">
+    <hr id="nt">
+    <div class="page-header" >
+    <br />
+      <h1>
+        Network
+        <small>Topology</small>
+      </h1>
+    </div>
+    <div id="chart"></div>
+    <button class="btn btn-default" role="button" onclick="load_graph();">
+        <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Refresh
+    </button>
+
+    <br />
+    <br />
+    <hr id="ftm">
+    <div class="page-header" >
+      <h1>
+        Flow Table
+        <small>Modification</small>
+      </h1>
+    </div>
+
+    <div id="ftmr">
+    <table id="fts" data-toggle="table" data-url="/flow" data-click-to-select="true" data-height=500>
+        <thead>
+            <tr>
+                <th data-field="state" data-checkbox="true"></th>
+                <th data-field="dpid">dpid</th>
+                <th data-field="table_id">table_id</th>
+                <th data-field="cookie">cookie</th>
+                <th data-field="length">length</th>
+                <th data-field="priority">priority</th>
+                <th data-field="match">match</th>
+                <th data-field="actions">actions</th>
+                <th data-field="packet_count">packet_count</th>
+                <th data-field="byte_count">byte_count</th>
+                <th data-field="flags">flags</th>
+                <th data-field="hard_timeout">hard_timeout</th>
+                <th data-field="idle_timeout">idle_timeout</th>
+                <th data-field="duration_sec">duration_sec</th>
+                <th data-field="duration_nsec">duration_nsec</th>
+            </tr>
+        </thead>
+    </table>
+    </div>
+    <br />
+    <button class="btn btn-default" role="button" onclick="refresh_fts();">
+        <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Refresh
+    </button>
+    <button class="btn btn-primary" role="button" data-toggle="modal" data-target="#addModal">Add</button>
+    <button class="btn btn-danger" role="button" data-toggle="modal" data-target="#deleteModal">Delete</button>
+    <!-- Add Modal -->
+    <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="addModalLabel">Add a flow entry</h4>
+          </div>
+          <div class="modal-body">
+              <form id="add_form" action="/add" method="POST">
+                <label for="dpid">dpid<font color="red">*</font>:</label>
+                <input id="dpid" name="dpid" type="text" class="form-control">
+                <label for="table_id">table_id:</label>
+                <input id="table_id" name="table_id" type="text" class="form-control">
+                <label for="cookie">cookie:</label>
+                <input id="cookie" name="cookie" type="text" class="form-control">
+                <label for="cookie_mask">cookie_mask:</label>
+                <input id="cookie_mask" name="cookie_mask" type="text" class="form-control">
+                <label for="idle_timeout">idle_timeout:</label>
+                <input id="idle_timeout" name="idle_timeout" type="text" class="form-control">
+                <label for="hard_timeout">hard_timeout:</label>
+                <input id="hard_timeout" name="hard_timeout" type="text" class="form-control">
+                <label for="priority">priority:</label>
+                <input id="priority" name="priority" type="text" class="form-control">
+                <label for="buffer_id">buffer_id:</label>
+                <input id="buffer_id" name="buffer_id" type="text" class="form-control">
+                <label for="flags">flags:</label>
+                <input id="flags" name="flags" type="text" class="form-control">
+                <label for="match">match<font color="red">*</font>:</label>
+                <textarea id="match" name="match" type="text" class="form-control" placeholder="Example: in_port=1,dl_type=2048"></textarea>
+                <label for="actions">actions<font color="red">*</font>:</label>
+                <textarea id="actions" name="actions" type="text" class="form-control" placeholder="Example: type:output,port=1;type:goto_table,table_id=1"></textarea>
+              </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" onclick="add_n_refresh();">Add</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Add Modal closed -->
+    <!-- Delete Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="deleteModalLabel">**WARNING**</h4>
+          </div>
+          <div class="modal-body">
+            <p>Are you sure you want to delete the selected flow entries?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-danger" data-dismiss="modal" onclick="delete_n_refresh();">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Delete Modal closed -->
+    <br />
+    <br />
+    <br />
+  </div>
+  <!-- container div closed -->
+
+<script type="text/javascript" src="topo.js"></script>
+<script src="http://cdn.bootcss.com/jquery/2.1.3/jquery.min.js" ></script>
+<script src="http://cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+<script src="bootstrap-table.min.js" charset="utf-8"></script>
+
+</body>
+</html>

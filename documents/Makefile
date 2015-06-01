@@ -3,7 +3,7 @@ TEX = xelatex -8bit -output-directory=${OUTPUT_DIRECTORY}
 BIBTEX = bibtex
 TEX_FILE = SDN2015.tex
 BASENAME = $(basename ${TEX_FILE})
-BIB_FILE = ref-example.bib
+BIB_FILE = ref.bib
 CUR_DIR = $(shell pwd)
 
 ${BASENAME}: ${BASENAME}.pdf

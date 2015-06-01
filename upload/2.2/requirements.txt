@@ -1,0 +1,4 @@
+bottle==0.12.8
+decorator==3.4.0
+networkx==1.9.1
+requests==2.5.1
