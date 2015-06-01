@@ -1,0 +1,7 @@
+mn --controller=remote --topo=linear,4 --nat 
+ryu-manager c1.py
+网络为线性拓扑，共4个host，分别与4个交换机相连（s1,s2,s3,s4）。这四个交换机互相之间也有连接。为了使hosts可以访问外网，故使用了nat参数使得本机也连接在s1上。h1的网关是h3。将controller上的dnsserver设置为h4的mac地址，dns请求全部劫持到h4上。
+h4黑名单（dns.conf）中加入baidu.*
+h4上运行fakedns。（fakedns.py）
+在h1上使用nslookup查找www.google.com
+再查找www.baidu.com

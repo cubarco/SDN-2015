@@ -15,6 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import ryu
 from ryu.base import app_manager
 from ryu.controller import ofp_event
 from ryu.controller.handler import CONFIG_DISPATCHER, MAIN_DISPATCHER
@@ -23,7 +24,7 @@ from ryu.ofproto import ofproto_v1_3
 from ryu.lib.packet import packet
 from ryu.lib.packet import ethernet
 
-dnsserver = ""
+dnsserver = "3a:12:8c:e5:53:c5"
 
 class SimpleSwitch13(app_manager.RyuApp):
     OFP_VERSIONS = [ofproto_v1_3.OFP_VERSION]
@@ -89,12 +90,17 @@ class SimpleSwitch13(app_manager.RyuApp):
         if eth.ethertype == 0x88cc:
             return
 
-        dnspacket = pkt.get_protocol(dns.dns)
+        dnspacket = pkt.get_protocol(ryu.lib.packet.udp.udp)
         dst = eth.dst
         actions = []
-        if dnspacket:
-            dst = dnsserver
-            actions.appendappend(parser.OFPActionDlAddr(dst))
+        match = parser.OFPMatch(in_port = in_port, eth_dst = dst)
+        if eth.ethertype == 0x0800:
+            ip = pkt.get_protocol(ryu.lib.packet.ipv4.ipv4)
+            if dnspacket and dnspacket.dst_port == 53 and eth.src != dnsserver:
+                self.logger.info("found dns packet")
+                dst = dnsserver
+            match = parser.OFPMatch(in_port = in_port, eth_dst = dst, eth_type = 0x0800, ip_proto = ip.proto)
+            #actions.append(parser.OFPActionDLAddr(dst))
         src = eth.src
 
         dpid = datapath.id
@@ -114,7 +120,6 @@ class SimpleSwitch13(app_manager.RyuApp):
 
         # install a flow to avoid packet_in next time
         if out_port != ofproto.OFPP_FLOOD:
-            match = parser.OFPMatch(in_port=in_port, eth_dst=dst)
             # verify if we have a valid buffer_id, if yes avoid to send both
             # flow_mod & packet_out
             if msg.buffer_id != ofproto.OFP_NO_BUFFER:

@@ -17,11 +17,12 @@ def is_dns(p):
 def handlepkt(p):
     dnsfield = p.getlayer(DNS)
     flag = True
-    if (dnsfield == None) or (dnsfield.qr == 1) or (p.dst.upper()!=localmac):
+    if (dnsfield == None) or (dnsfield.qr == 1) or (p.dst.upper() == localmac) or (p.src.upper() == localmac):
         return None
     for record in dnsfield.qd:
         for re_list in rules.re_list:
-            if re_list[0].match(record.qname.decode()):
+            if re_list[0].search(record.qname.decode()):
+                print("url in blacklist,dropping.")
                 flag = False
                 break
         if not flag:
@@ -29,7 +30,7 @@ def handlepkt(p):
     if flag:
         server = p.getlayer(IP).dst
         for record in dnsfield.qd:
-            ret = sr1(IP(dst = server)/UDP(dport = 53)/DNS(rd = 1, qd = DNSQR(qname = record.qname)), iface = "enp3s0", timeout = 2)
+            ret = sr1(IP(dst = server)/UDP(dport = 53)/DNS(rd = 1, qd = DNSQR(qname = record.qname)), iface = "h4-eth0", timeout = 2)
             if ret and ret.haslayer(DNS):
                 dnsp = DNS(id = dnsfield.id, qr = 1, opcode = 0, rd = 1, ra = 1, rcode =0, qdcount = ret[DNS].qdcount, ancount = ret[DNS].ancount, nscount = ret[DNS].nscount, arcount = ret[DNS].arcount, qd = ret[DNS].qd, an = ret[DNS].an, ns = ret[DNS].ns, ar = ret[DNS].ar)
                 retp = IP(src = server, dst = p[IP].src)/UDP(dport = p[UDP].sport)/dnsp
@@ -76,4 +77,4 @@ if __name__ == '__main__':
         exit()
     rules = ruleEngine(path)
     re_list = rules.re_list
-    sniff(store=0, iface = "enp3s0", prn = handlepkt, lfilter = is_dns)
+    sniff(store=0, iface = "h4-eth0", prn = handlepkt, lfilter = is_dns)
