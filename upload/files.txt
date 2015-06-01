@@ -14,7 +14,7 @@
 ├── 2.2
 │   ├── known_flows                     临时文件
 │   ├── README.md                       提高题第二小题：说明文件
-│   ├── requirements.txt                python 运行库
+│   ├── requirements.txt                Python 运行库
 │   ├── rest_topology.py                提高题第二小题：北向接口实现
 │   ├── simple_switch_13.py             提高题第二小题：简单交换机实现
 │   ├── static
@@ -27,10 +27,11 @@
 │   └── wrapper.py                      提高题第二小题：后台主程序
 ├── 3
 │   ├── 3.py                            设计题：Ryu App
+│   ├── requirements.txt                Python 运行依赖库
 │   ├── dns.conf                        DNS 劫持程序配置文件
 │   ├── fakedns.py                      DNS 劫持主程序
 │   └── README.md                       设计题说明文件
 ├── files.txt                           资源说明文件
 └── SDN2015.pdf                         主题文档
 
-7 directories, 26 files
+7 directories, 27 files
