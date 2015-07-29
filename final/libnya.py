@@ -1,6 +1,7 @@
 #!/bin/env python2
 # coding=utf8
 
+import ryu.app.ofctl.api
 from ryu.ofproto import ofproto_v1_3
 
 
@@ -146,9 +147,9 @@ class AppManager(object):
                 level_map[host][n_switch] = 1
             self.dfs(2, host, n_switch, switches, level_map, h_s_map, searched)
 
-    def run(self, controller):
-        hosts = controller.get_host_topology()
-        switches = controller.get_switch_topology()
+    def run(self, nyaapp):
+        hosts = nyaapp.get_host_topology()
+        switches = nyaapp.get_switch_topology()
         temp_flow_table = {}
         h_s_map = {}
         self.find_levels(hosts, switches, h_s_map)
@@ -194,6 +195,19 @@ class AppManager(object):
                 else:
                     for flow in temp_flow_table[sw]:
                         flow_table_mod.append((sw, flow, 'add'))
+        
+        for sw, flow, operation in flow_table_mod:
+            datapath = ryu.app.ofctl.api.get_datapath(nyaapp, sw)
+            ofproto = datapath.ofproto
+            parser = datapath.ofproto_parser
+            action = None
+            if flow.action == AppFlowModGroup.ACTION_DROP:
+                pass
+            #Mirror function incomplete, missing multiple flow table
+            elif flow.action == AppFlowModGroup.ACTION_MIRROR || flow.action == AppFlowModGroup.ACTION_REDIRECT_IN:
+                action = [parser.OFPActionOutput(1)]
+            match = parser.OFPMatch(eth_src=flow.from_mac, eth_dst=flow.to_mac)
+            nyaapp.add_flow(datapath, 2, match, action)
 
 
 coreapp = AppManager()
