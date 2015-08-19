@@ -27,9 +27,9 @@ class AppFlowModGroup(object):
     OFF = 0
     ON = 1
 
-    def __init__(self, default_state=ON, default_flow_table=None, action=ACTION_MIRROR):
+    def __init__(self, default_state=ON, default_match=None, action=ACTION_MIRROR):
         self.flow_mod = []
-        self.default_flow_table = default_flow_table
+        self.default_match = default_match
         self.state = default_state
         self.action = action
 
