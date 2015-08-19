@@ -4,7 +4,7 @@
 from __future__ import print_function
 
 import jobs
-import random
+import json
 import time
 import threading
 
@@ -17,38 +17,6 @@ from ryu.controller.handler import CONFIG_DISPATCHER, MAIN_DISPATCHER, \
     DEAD_DISPATCHER
 from ryu.controller.handler import set_ev_cls
 from ryu.lib.packet import packet, ethernet, arp, ipv4, udp
-
-
-# class NyaApp(BaseApp):
-
-    # def __init__(self, *args, **kwargs):
-        # super(NyaApp, self).__init__(*args, **kwargs)
-        # #self.scheduler.add_job(self.get_topology_data, id='get_topology_data')
-        # self.scheduler.start()
-        # self.compute_nodes = {}
-        # self.dpids = {}
-        # self.switches = []
-        # self.links = []
-
-    # @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
-    # def features_handler(self, ev):
-        # datapath = ev.msg.datapath
-        # # ofproto = datapath.ofproto
-        # # parser = datapath.ofproto_parser
-
-        # dpid = datapath.id
-        # self.dpids.setdefault(dpid, {})
-        # pkt = packet.Packet()
-        # pkt.add_protocol(ethernet.ethernet(dst='ff:ff:ff:ff:ff:ff',
-                                           # src='00:00:00:00:00:00',
-                                           # ethertype=0x9999))
-        # self.send_packet(datapath, 1, pkt)
-
-    # @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
-    # def _packet_in_handler(self, ev):
-        # print('pre for packet in')
-        # self.get_topology_data(None)
-#        print('post for packet in')
 
 
 class NyaApp(app_manager.RyuApp):
@@ -79,6 +47,21 @@ class NyaApp(app_manager.RyuApp):
         # host_topo: {'xx:xx:xx:xx:xx:xx': {'ip': 'xxx.xxx.xxx.xxx',
         #                                   'dpid': int}, ...}
         self.hosts_topo = {}
+        # func_table: {dpid: {'func_id': int, 'desc': str}, ...}
+        self.func_table = {}
+
+    @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
+    def features_handler(self, ev):
+        datapath = ev.msg.datapath
+        # ofproto = datapath.ofproto
+        # parser = datapath.ofproto_parser
+        dpid = datapath.id
+        print('switch: %d connected' % dpid)
+        pkt = packet.Packet()
+        pkt.add_protocol(ethernet.ethernet(dst='ff:ff:ff:ff:ff:ff',
+                                           src='00:00:00:00:00:00',
+                                           ethertype=0x9999))
+        self._send_packet(datapath, 1, pkt)
 
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
     def _packet_in_handler(self, ev):
@@ -94,12 +77,19 @@ class NyaApp(app_manager.RyuApp):
         src = eth.src
         dst = eth.dst
         time_now = time.time()
-
+        self.func_table.setdefault(dpid, {})
         if in_port not in ports:
             self._hosts[src] = {'dpid': dpid, 'time': time_now,
                                 'port': in_port}
 
-        if eth.ethertype == 0x0806:  # ARP packet
+        if eth.ethertype == 0x9999:  # Nya func message
+            raw_data = msg.data[14:]  # src(6) + dst(6) + type(2) + payload
+            if not raw_data:
+                return
+            parsed_data = json.loads(raw_data)
+            self.func_table[dpid] = dict(parsed_data)  # copy
+            print(self.func_table)
+        elif eth.ethertype == 0x0806:  # ARP packet
             arp_p = pkt.get_protocol(arp.arp)
             if arp_p.src_mac != '00:00:00:00:00:00':
                 self._arp[arp_p.src_mac] = {'dpid': dpid, 'ip': arp_p.src_ip,

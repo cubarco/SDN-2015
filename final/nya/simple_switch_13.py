@@ -84,7 +84,7 @@ class SimpleSwitch13(app_manager.RyuApp):
         pkt = packet.Packet(msg.data)
         eth = pkt.get_protocol(ethernet.ethernet)
 
-        if eth.ethertype == 0x88cc:
+        if eth.ethertype == 0x88cc or eth.ethertype == 0x9999:
             return
 
         dst = eth.dst
