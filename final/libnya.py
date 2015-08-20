@@ -101,8 +101,9 @@ class GlobalComputeNodeApp(object):
 
     '''所有用户app应继承自此类，并定义好其中的flow_mod_group和UIElemnt，然后调用register注册到coreapp'''
 
-    def __init__(self, appid,  flow_mod_group=None, ui_elem=None):
+    def __init__(self, appid, enable=0, flow_mod_group=None, ui_elem=None):
         self.appid = appid
+        self.enable = enable
         self.flow_mod_groups = [flow_mod_group]
         self.ui_elems = [ui_elem]
         self.flow_table = {}
@@ -125,7 +126,13 @@ class GlobalComputeNodeApp(object):
 
     def register(self):
         global coreapp
-        coreapp.flow_mod_groups.extend(self.flow_mod_groups)
+        coreapp.apps.append(self)
+
+    # This function is called when value of webUI of this app changed
+    # must be implemented by user.
+    def update_state(self):
+        pass
+
 
 
 class AppManager(object):
@@ -134,7 +141,7 @@ class AppManager(object):
 
     def __init__(self):
         self.flow_table = {}
-        self.flow_mod_groups = []
+        self.apps = []
 
     def dfs(self, level, host, switch, switches, level_map, h_s_map, searched):
         for n_switch in switches[switch]:
@@ -171,31 +178,35 @@ class AppManager(object):
     def run(self, nyaapp):
         hosts = nyaapp.get_host_topology()
         switches = nyaapp.get_switch_topology()
+        supported_apps = nyaapp.get_appids()
         temp_flow_table = {}
         h_s_map = {}
         self.find_levels(hosts, switches, h_s_map)
-        for flow_mod_group in self.flow_mod_groups:
-            if flow_mod_group.state == AppFlowModGroup.OFF:
+        for app in self.apps:
+            if app.appid not in supported_apps:
                 continue
-            for hop in flow_mod_group:
-                if hop > 0:
-                    for host in hosts:
-                        for sw in h_s_map[host][hop]:
+            for flow_mod_group in app.flow_mod_groups:
+                if flow_mod_group.state == AppFlowModGroup.OFF:
+                    continue
+                for hop in flow_mod_group:
+                    if hop > 0:
+                        for host in hosts:
+                            for sw in h_s_map[host][hop]:
+                                if temp_flow_table[sw] is None:
+                                    temp_flow_table[sw] = set([])
+                                temp_flow_table[sw].add(simpleflow(from_mac=host, action=flow_mod_group.action))
+                    elif hop < 0:
+                        for host in hosts:
+                            for sw in h_s_map[host][-hop]:
+                                if temp_flow_table[sw] is None:
+                                    temp_flow_table[sw] = set([])
+                                temp_flow_table[sw].add(simpleflow(to_mac=host, action=flow_mod_group.action))
+                    else:
+                        for sw in switches.keys():
                             if temp_flow_table[sw] is None:
                                 temp_flow_table[sw] = set([])
-                            temp_flow_table[sw].add(simpleflow(from_mac=host, action=flow_mod_group.action))
-                elif hop < 0:
-                    for host in hosts:
-                        for sw in h_s_map[host][-hop]:
-                            if temp_flow_table[sw] is None:
-                                temp_flow_table[sw] = set([])
-                            temp_flow_table[sw].add(simpleflow(to_mac=host, action=flow_mod_group.action))
-                else:
-                    for sw in switches.keys():
-                        if temp_flow_table[sw] is None:
-                            temp_flow_table[sw] = set([])
-                        temp_flow_table[sw].add(simpleflow(action=flow_mod_group.action))
-        flow_table_mod = []
+                            temp_flow_table[sw].add(simpleflow(action=flow_mod_group.action))
+            flow_table_mod = []
 
         for sw in switches:
             if self.flow_table[sw] == temp_flow_table[sw]:
