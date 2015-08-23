@@ -5,17 +5,18 @@ import socket
 import thread
 import sys
 import os
-import threading
+import json
 
 MAX_DATA_RECV = 81920
 SERVER_ADDR = '192.168.1.104'
 SERVER_PORT = 80
 REDIRECT_ADDR = '192.168.1.104'
-REDIRECT_PORT = 8080
+REDIRECT_PORT = 8000
 OUT_DIR = '/tmp/proxy-out/'
 CACHE_SIZE = 50 * 1024 * 1024  # 50MB
-CACHE_LIST_WRITE_LOCK = threading.Lock()
-CACHE_LIST_FILE = '/tmp/proxy-out/list'
+CACHE_FILELIST = '/tmp/proxy-out/list'
+CACHE_FILELIST_ALL = '/tmp/proxy-out/listall'
+
 
 def main():
     try:
@@ -57,13 +58,14 @@ def SPB(request, conn, webserver, port, url):
         print 'cache_filename: ' + cache_filename
         print 'full_filename: ' + full_filename
 
-        if not os.path.exists(os.path.dirname(full_filename)):
-            os.makedirs(os.path.dirname(full_filename))
-
-        if os.path.exists(full_filename):
-            conn.send('HTTP/1.1 302 Found\r\nLocation: http://{}:{}/{}\r\n'
-                      .format(REDIRECT_ADDR, REDIRECT_PORT, cache_filename))
-        else:
+        with open(CACHE_FILELIST_ALL) as f:
+            filelist_all = json.loads(f.read())
+        for k, v in filelist_all.items():
+            if cache_filename in v:
+                conn.send('HTTP/1.1 302 Found\r\nLocation: http://{}:{}/{}\r\n'
+                          .format(k, REDIRECT_PORT, cache_filename))
+                break
+        else:  # no break then else
             to_cache = False
             data = proxy.recv(MAX_DATA_RECV)
             double_crlf_pos = data.find('\r\n\r\n')
@@ -78,6 +80,8 @@ def SPB(request, conn, webserver, port, url):
 
             conn.send(data)
             if to_cache:
+                if not os.path.exists(os.path.dirname(full_filename)):
+                    os.makedirs(os.path.dirname(full_filename))
                 padding_data = data[double_crlf_pos + 4:]
                 with open(full_filename, 'wb') as cache_file:
                     cache_file.write(padding_data)
@@ -92,7 +96,7 @@ def SPB(request, conn, webserver, port, url):
                                 os.remove(full_filename)
                                 raise socket.error, (503, 'custom error')
                         else:
-                            with open('/tmp/proxy-out/list', 'w') as f:
+                            with open(CACHE_FILELIST, 'w') as f:
                                 f.write(cache_filename + '\n')
                             break
             else:
