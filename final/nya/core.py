@@ -241,4 +241,14 @@ class NyaApp(app_manager.RyuApp):
                                   data=data)
         datapath.send_msg(out)
 
+    def get_host_topology(self):
+        return self.hosts_topo
+
+    def get_switch_topology(self):
+        return self.switches_topo
+
+    # need to modify the structure of func_table to produce usable return value
+    def get_appids(self):
+        pass
+
 app_manager.require_app('./simple_switch_13.py', api_style=True)

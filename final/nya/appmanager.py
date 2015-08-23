@@ -42,15 +42,12 @@ class AppManager(object):
 
     def find_levels(self, hosts, switches, h_s_map):
         for host in hosts.keys():
-            n_switch = hosts[host]
+            n_switch = hosts[host]['dpid']
             searched = [n_switch]
             if host not in h_s_map:
                 h_s_map[host] = {1: [n_switch]}
             else:
-                if host in level_map:
-                    if n_switch in level_map[host]:
-                        h_s_map[host][level_map[host][n_switch]].remove(n_switch)
-                h_s_map[host][1].append(n_switch)
+                h_s_map[host].setdefault(1, []).append(n_switch)
             self.bfs(2, host, [n_switch], switches, h_s_map, searched)
 
     def run(self, nyaapp):
@@ -111,7 +108,7 @@ class AppManager(object):
             print "sw %d flow from %s to %s action %d %sed"%(sw, sflow.get_from_mac(), sflow.get_to_mac(), sflow.get_action(), act)
 
         for sw, flow, operation in flow_table_mod:
-            datapath = ryu.app.ofctl.api.get_datapath(nyaapp.get_ryu(), sw)
+            datapath = ryu.app.ofctl.api.get_datapath(nyaapp, sw)
             ofproto = datapath.ofproto
             parser = datapath.ofproto_parser
             action = None
