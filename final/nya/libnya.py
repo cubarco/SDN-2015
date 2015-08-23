@@ -87,16 +87,6 @@ class AppUIElement(object):
 # 尚未实现webUI，应当对coreapp中注册的每一个app生成一个页面，页面内容由该app的UIElement决定
 
 
-class simpleflow(object):
-
-    '''辅助类'''
-
-    def __init__(self, action, from_mac=None, to_mac=None):
-        self.from_mac = from_mac
-        self.to_mac = to_mac
-        self.action = action
-
-
 class GlobalComputeNodeApp(object):
 
     '''所有用户app应继承自此类，并定义好其中的flow_mod_group和UIElemnt，然后调用register注册到coreapp'''
@@ -124,9 +114,8 @@ class GlobalComputeNodeApp(object):
     def del_ui_elem(self, num):
         del self.ui_elems[num]
 
-    def register(self):
-        global coreapp
-        coreapp.apps.append(self)
+    def register(self, app):
+        app.apps.append(self)
 
     # This function is called when value of webUI of this app changed
     # must be implemented by user.
