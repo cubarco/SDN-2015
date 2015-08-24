@@ -43,7 +43,8 @@ class AppUIText(object):
 
     UI_ID = 0
 
-    def __init__(self, text):
+    def __init__(self, markstr, text):
+        self.markstr = markstr
         self.text = text
 
 
@@ -53,7 +54,8 @@ class AppUIEntry(object):
 
     UI_ID = 1
 
-    def __init__(self, default_text):
+    def __init__(self, markstr, default_text):
+        self.markstr = markstr
         self.text = default_text
 
 
@@ -91,16 +93,14 @@ class GlobalComputeNodeApp(object):
 
     '''所有用户app应继承自此类，并定义好其中的flow_mod_group和UIElemnt，然后调用register注册到coreapp'''
 
-    def __init__(self, appid, enable=0, flow_mod_group=None, ui_elem=None):
+    def __init__(self, appid, enable=0, flow_mod_group=None, ui_elems=None):
         self.appid = appid
         self.enable = enable
         self.flow_mod_groups = [flow_mod_group]
-        self.ui_elems = [ui_elem]
-        self.flow_table = {}
-        if self.flow_mod_groups[0] == None:
+        self.ui_elems = ui_elems
+        self.attrs = []
+        if self.flow_mod_groups[0] is None:
             self.flow_mod_groups = []
-        if self.ui_elems[0] == None:
-                self.ui_elems = []
 
     def add_flow_mod_group(self, group):
         self.flow_mod_groups.append(group)
@@ -108,11 +108,23 @@ class GlobalComputeNodeApp(object):
     def del_flow_mod_group(self, num):
         del self.flow_mod_groups[num]
 
-    def add_ui_elem(self, ui_elem):
-        self.ui_elems.append(ui_elem)
+    def add_ui_elems(self, ui_elems):
+        if self.ui_elems is not None:
+            self.del_ui_elems()
+        self.ui_elems = ui_elems
+        for row in ui_elems.rows:
+            for elem in row:
+                if elem.UI_ID == 1:
+                    setattr(self, elem.markstr, elem.text)
+                    self.attrs.append(elem.markstr)
 
-    def del_ui_elem(self, num):
-        del self.ui_elems[num]
+    def del_ui_elems(self):
+        for row in self.ui_elems:
+            for elem in row:
+                if elem.UI_ID == 1:
+                    delattr(self, elem.markstr)
+        del self.ui_elems
+        self.attrs = []
 
     def register(self, app):
         app.apps.append(self)
@@ -120,4 +132,8 @@ class GlobalComputeNodeApp(object):
     # This function is called when value of webUI of this app changed
     # must be implemented by user.
     def update_state(self):
-        pass
+        if self.ui_elems is not None:
+            for row in self.ui_elems:
+                for elem in row:
+                    if elem.UI_ID == 1:
+                        setattr(self, elem.markstr, elem.text)
