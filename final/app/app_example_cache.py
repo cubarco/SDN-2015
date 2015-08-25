@@ -8,7 +8,7 @@ class appcrypto(libnya.GlobalComputeNodeApp):
 
     def __init__(self):
         flowmod = libnya.AppFlowMod(1)  # First hop
-        flowmodgroup = libnya.AppFlowModGroup(action=1)
+        flowmodgroup = libnya.AppFlowModGroup(default_match=0x0800, port=80, action=1)
         flowmodgroup.append_mod(flowmod)
         text1 = libnya.AppUIText("name", "The Cache Test")
         row1 = libnya.AppUICols()

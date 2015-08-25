@@ -11,11 +11,12 @@ from ryu.ofproto import ofproto_v1_3_parser
 
 
 class simpleflow(object):
-    def __init__(self, action, from_mac=None, to_mac=None, match_type=None):
+    def __init__(self, action, from_mac=None, to_mac=None, match_type=None, port=None):
         self.__from_mac = from_mac
         self.__to_mac = to_mac
         self.__action = action
         self.__match_type = match_type
+        self.__port = port
 
     def get_from_mac(self):
         return self.__from_mac
@@ -25,6 +26,9 @@ class simpleflow(object):
 
     def get_type(self):
         return self.__match_type
+
+    def get_port(self):
+        return self.__port
 
     def get_action(self):
         return self.__action
@@ -115,9 +119,6 @@ class AppManager(object):
 
         for sw, flow, operation in flow_table_mod:
             print "sw %d flow from %s to %s action %d %sed"%(sw, flow.get_from_mac(), flow.get_to_mac(), flow.get_action(), operation)
-            print flow.get_from_mac()
-            print flow.get_to_mac()
-            print '111111111111111111111111111'
             #datapath = nyaapp.get_datapath(sw)
             parser = ofproto_v1_3_parser
             action = None
@@ -129,6 +130,7 @@ class AppManager(object):
                 src = flow.get_from_mac()
                 dst = flow.get_to_mac()
                 match_type = flow.get_type()
+                match_port = flow.get_port()
                 print match_type
                 parameters = {}
                 if src:
@@ -137,6 +139,8 @@ class AppManager(object):
                     parameters['eth_dst'] = dst
                 if match_type:
                     parameters['eth_type'] = match_type
+                if match_port:
+                    parameters['nw_port'] = match_port
                 match = parser.OFPMatch(**parameters)
 
                 #if match_type:
