@@ -7,6 +7,7 @@ import jobs
 import json
 import time
 import threading
+import appmanager
 
 from ryu.base import app_manager
 from ryu.ofproto import ofproto_v1_3
@@ -24,7 +25,7 @@ class NyaApp(app_manager.RyuApp):
 
     def __init__(self, *args, **kwargs):
         super(NyaApp, self).__init__(*args, **kwargs)
-        self.name = 'NyaApp'
+        #self.name = 'NyaApp'
         self.scheduler = jobs.SchedulerWrapper()
         self.scheduler.add_job(self._hosts_topo_parse_job,
                                id='hosts topo parse job')
@@ -49,6 +50,8 @@ class NyaApp(app_manager.RyuApp):
         self.hosts_topo = {}
         # func_table: {dpid: {'func_id': int, 'desc': str}, ...}
         self.func_table = {}
+        # datapaths: {int: object, ...}
+        self.datapaths = {}
 
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
     def features_handler(self, ev):
@@ -56,6 +59,7 @@ class NyaApp(app_manager.RyuApp):
         # ofproto = datapath.ofproto
         # parser = datapath.ofproto_parser
         dpid = datapath.id
+        self.datapaths[dpid] = datapath
         print('switch: %d connected' % dpid)
         pkt = packet.Packet()
         pkt.add_protocol(ethernet.ethernet(dst='ff:ff:ff:ff:ff:ff',
@@ -133,6 +137,9 @@ class NyaApp(app_manager.RyuApp):
                 # switches_topo[link[1]].append(link[0])
             self.switches_topo = dict(switches_topo)  # copy
         # TODO Switches Topology changes here.
+        print('switch:' + str(self.switches_topo))
+        appmanager.coreapp.run(self)
+
 
     def _clear_arp(self, dpid=None):
         with self._lock:
@@ -192,11 +199,14 @@ class NyaApp(app_manager.RyuApp):
                         changed = True
                         break
             if changed:
-                pass
                 # TODO Hosts topo changed here
+                print('hosts: ' + str(self.hosts_topo))
+                appmanager.coreapp.run(self)
 
-    def _add_flow(self, datapath, priority, match, actions, hard_timeout=0,
+
+    def _add_flow(self, dpid, priority, match, actions, hard_timeout=0,
                   idle_timeout=0, buffer_id=None):
+        datapath = self.get_datapath(dpid)
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
 
@@ -213,11 +223,13 @@ class NyaApp(app_manager.RyuApp):
                                     hard_timeout=hard_timeout,
                                     idle_timeout=idle_timeout,
                                     match=match, instructions=inst)
+        print(mod)
         datapath.send_msg(mod)
 
-    def _del_flow(self, datapath, table_id, match, actions,
+    def _del_flow(self, dpid, table_id, match, actions,
                   out_port=ofproto_v1_3.OFPP_ANY):
-        ofproto = datapath.ofproto
+        datapath = self.get_datapath(dpid)
+        ofproto = ofproto_v1_3
         parser = datapath.ofproto_parser
         inst = [parser.OFPInstructionActions(ofproto.OFPIT_APPLY_ACTIONS,
                                              actions)]
@@ -229,7 +241,7 @@ class NyaApp(app_manager.RyuApp):
         datapath.send_msg(mod)
 
     def _send_packet(self, datapath, out_port, pkt):
-        ofproto = datapath.ofproto
+        ofproto = ofproto_v1_3
         parser = datapath.ofproto_parser
         pkt.serialize()
         data = pkt.data
@@ -242,10 +254,13 @@ class NyaApp(app_manager.RyuApp):
         datapath.send_msg(out)
 
     def get_host_topology(self):
-        return self.hosts_topo
+        return dict(self.hosts_topo)
 
     def get_switch_topology(self):
-        return self.switches_topo
+        return dict(self.switches_topo)
+
+    def get_datapath(self, dpid):
+        return self.datapaths.get(dpid, None)
 
     # need to modify the structure of func_table to produce usable return value
     def get_appids(self):

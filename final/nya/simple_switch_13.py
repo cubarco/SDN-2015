@@ -47,6 +47,10 @@ class SimpleSwitch13(app_manager.RyuApp):
         actions = [parser.OFPActionOutput(ofproto.OFPP_CONTROLLER,
                                           ofproto.OFPCML_NO_BUFFER)]
         self.add_flow(datapath, 0, match, actions)
+        match = parser.OFPMatch(in_port=1)
+        actions = [parser.OFPActionOutput(ofproto.OFPP_CONTROLLER,
+                                          ofproto.OFPCML_NO_BUFFER)]
+        self.add_flow(datapath, 3, match, actions)
 
     def add_flow(self, datapath, priority, match, actions, hard_timeout=0,
                  idle_timeout=0, buffer_id=None):
@@ -110,16 +114,18 @@ class SimpleSwitch13(app_manager.RyuApp):
         # install a flow to avoid packet_in next time
         if out_port != ofproto.OFPP_FLOOD:
             match = parser.OFPMatch(in_port=in_port, eth_dst=dst)
+            match_port_one = parser.OFPMatch(in_port=1, eth_dst=dst)
             # verify if we have a valid buffer_id, if yes avoid to send both
             # flow_mod & packet_out
             if msg.buffer_id != ofproto.OFP_NO_BUFFER:
                 self.add_flow(datapath, 1, match, actions,
-                              hard_timeout=120, idle_timeout=30,
+                              buffer_id=msg.buffer_id)
+                self.add_flow(datapath, 4, match_port_one, actions,
                               buffer_id=msg.buffer_id)
                 return
             else:
-                self.add_flow(datapath, 1, match, actions,
-                              hard_timeout=120, idle_timeout=30)
+                self.add_flow(datapath, 1, match, actions)
+                self.add_flow(datapath, 4, match_port_one, actions)
         data = None
         if msg.buffer_id == ofproto.OFP_NO_BUFFER:
             data = msg.data

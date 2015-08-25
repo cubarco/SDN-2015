@@ -29,13 +29,15 @@ SECRET_KEY = '1' * BLOCK_SIZE
 # you encrypt must be a multiple of BLOCK_SIZE in length.  This character is
 # used to ensure that your value is always a multiple of BLOCK_SIZE
 PADDING = '{'
+MTU = 32 * 46
 
 ENCODED_IDENTIFIER = 'yooo'
 
 
 # pad the text to be encrypted
 def pad(s):
-    return s + (BLOCK_SIZE - len(s) % BLOCK_SIZE) * PADDING
+    print 'orig size: %d' % len(s)
+    return s + (BLOCK_SIZE - len(s) % BLOCK_SIZE) % BLOCK_SIZE * PADDING
 
 
 def EncodeAES(c, s):
@@ -50,17 +52,23 @@ sock = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(ETH_P_IP))
 while True:
     raw_data = sock.recv(1500)
     pkt = Ether(raw_data)
+    print 'pkt size: ' + str(len(pkt))
     # Encode the whole layer 3(IP)
     ip = str(pkt.payload)
     if ip[:len(ENCODED_IDENTIFIER)] == ENCODED_IDENTIFIER:  # this is encoded
-        decoded = DecodeAES(cipher, ip[len(ENCODED_IDENTIFIER):])
-        pkt.payload = decoded
-        print 'decoded size: ' + str(len(str(pkt)))
-        sendp(pkt, iface=INTERFACE_NAME)
+        try:
+            decoded = DecodeAES(cipher, ip[len(ENCODED_IDENTIFIER):])
+        except ValueError as e:
+            print 'failed at decoding'
+            print e
+        else:
+            pkt.payload = decoded
+            print 'decoded size: ' + str(len(str(pkt)))
+            sendp(pkt, iface=INTERFACE_NAME)
     else:  # this packet is not encoded
-        encoded = ENCODED_IDENTIFIER + EncodeAES(cipher, ip)
+        encoded = ENCODED_IDENTIFIER + EncodeAES(cipher, ip[:MTU])
         pkt.payload = encoded
         # drop bytes over 1500(MTU)
-        pkt = Ether(str(pkt)[:1500])
         print 'encoded size: ' + str(len(str(pkt)))
+        pkt = Ether(str(pkt)[:1500])
         sendp(pkt, iface=INTERFACE_NAME)
