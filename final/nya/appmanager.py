@@ -41,6 +41,19 @@ class AppManager(object):
         self.flow_table = {}
         self.apps = []
 
+    def set_schedue(self, nyaapp):
+        for app in self.apps:
+            if app.app.task:
+                if app.app.tasknya:
+                    if app.app.taskargs:
+                        app.app.taskargs.append(nyaapp)
+                    elif app.app.taskwargs:
+                        app.app.taskwargs["nya"] = nyaapp
+                    else:
+                        app.app.taskargs=[nyaapp]
+                nyaapp.scheduler.add_job(func=app.app.task, id=app.app.taskid, args=app.app.taskargs, kwargs=app.app.taskwargs, interval=app.app.taskinterval)
+
+
     def bfs(self, level, host, f_switches, switches, h_s_map, searched):
         nf_switches = []
         for f_switch in f_switches:
