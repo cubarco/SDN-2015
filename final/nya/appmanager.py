@@ -5,6 +5,7 @@ import ryu.app.ofctl.api
 import importlib
 import sys
 import os
+import json
 
 from ryu.ofproto import ofproto_v1_3
 from ryu.ofproto import ofproto_v1_3_parser
@@ -155,6 +156,25 @@ class AppManager(object):
                     nyaapp._add_flow(sw, 2, match, action)
                 else:
                     nyaapp._del_flow(sw, 0, match, action)
+        json_pre ={}
+        for app in self.apps:
+            appdict = {}
+            appname = app.__class__.__name__
+            appdict['appid'] = app.appid
+            appdict['tip'] = app.tip
+            appdict['enabled'] = app.enable
+            for flowmodgroup in app.flow_mod_groups:
+                for flowmod in flowmodgroup:
+                    appdict['hop'] = flowmod.hop
+                appdict['match'] = flowmodgroup.default_match
+                appdict['method'] = flowmodgroup.action
+                appdict['macfix'] = flowmodgroup.macfix
+            appdict['flow_tables'] = len(self.flow_table.items())
+            json_pre[appname] = appdict
+        json_out = json.dumps(json_pre)
+        jf = open('webui,json', 'w')
+        jf.write(json_out)
+        jf.close()
 
 
 coreapp = AppManager()
@@ -173,3 +193,4 @@ for appname in applist:
     sys.path.pop(0)
 for app in apps:
     app.app.register(coreapp)
+

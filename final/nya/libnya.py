@@ -94,8 +94,9 @@ class GlobalComputeNodeApp(object):
 
     '''所有用户app应继承自此类，并定义好其中的flow_mod_group和UIElemnt，然后调用register注册到coreapp'''
 
-    def __init__(self, appid, enable=0, flow_mod_group=None, ui_elems=None, task=None, taskid=None, tasknya=None, taskinterval=None):
+    def __init__(self, appid, ,tip=None, enable=0, flow_mod_group=None, ui_elems=None, task=None, taskid=None, tasknya=None, taskinterval=None):
         self.appid = appid
+        self.tip = tip
         self.enable = enable
         self.flow_mod_groups = [flow_mod_group]
         self.ui_elems = ui_elems
