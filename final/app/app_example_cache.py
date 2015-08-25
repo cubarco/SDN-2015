@@ -17,7 +17,7 @@ class appcrypto(libnya.GlobalComputeNodeApp):
         row1.add_elem(text1)
         ui_elems = libnya.AppUIElement()
         ui_elems.add_row(row1)
-        libnya.GlobalComputeNodeApp.__init__(self, 1, 1, flowmodgroup, ui_elems, sync, "cache_sync", interval=10)
+        libnya.GlobalComputeNodeApp.__init__(self, 1, 1, flowmodgroup, ui_elems, sync, "cache_sync", taskinterval=60)
 
 
 app = appcrypto()

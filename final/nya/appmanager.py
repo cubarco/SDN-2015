@@ -43,15 +43,8 @@ class AppManager(object):
 
     def set_schedue(self, nyaapp):
         for app in self.apps:
-            if app.app.task:
-                if app.app.tasknya:
-                    if app.app.taskargs:
-                        app.app.taskargs.append(nyaapp)
-                    elif app.app.taskwargs:
-                        app.app.taskwargs["nya"] = nyaapp
-                    else:
-                        app.app.taskargs=[nyaapp]
-                nyaapp.scheduler.add_job(func=app.app.task, id=app.app.taskid, args=app.app.taskargs, kwargs=app.app.taskwargs, interval=app.app.taskinterval)
+            if app.task:
+                nyaapp.scheduler.add_job(func=app.task, id=app.taskid, args=[nyaapp], interval=app.taskinterval)
 
 
     def bfs(self, level, host, f_switches, switches, h_s_map, searched):

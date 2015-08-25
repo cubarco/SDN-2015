@@ -29,6 +29,7 @@ class NyaApp(app_manager.RyuApp):
         self.scheduler = jobs.SchedulerWrapper()
         self.scheduler.add_job(self._hosts_topo_parse_job,
                                id='hosts topo parse job')
+        appmanager.coreapp.set_schedue(self)
         self.scheduler.start()
         # hosts: {'xx:xx:xx:xx:xx:xx': {'dpid': int, 'port': int
         #                               'time': time.time()}, ...}
@@ -52,6 +53,7 @@ class NyaApp(app_manager.RyuApp):
         self.func_table = {}
         # datapaths: {int: object, ...}
         self.datapaths = {}
+
 
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
     def features_handler(self, ev):
