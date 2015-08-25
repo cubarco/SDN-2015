@@ -8,14 +8,21 @@ import os
 import json
 
 MAX_DATA_RECV = 81920
-SERVER_ADDR = '192.168.1.104'
+SERVER_ADDR = '10.0.0.4'
 SERVER_PORT = 80
-REDIRECT_ADDR = '192.168.1.104'
+REDIRECT_ADDR = '10.0.0.4'
 REDIRECT_PORT = 8000
-OUT_DIR = '/tmp/proxy-out/'
-CACHE_SIZE = 50 * 1024 * 1024  # 50MB
-CACHE_FILELIST = '/tmp/proxy-out/list'
-CACHE_FILELIST_ALL = '/tmp/proxy-out/listall'
+CACHE_DIR = '/tmp/cache-server/h4/'
+CACHE_SIZE = 50 * 1024  # 50KB
+CACHE_FILELIST = CACHE_DIR + 'list'
+CACHE_FILELIST_ALL = CACHE_DIR + 'filelist_all'
+
+if not os.path.exists(os.path.dirname(CACHE_DIR)):
+    os.makedirs(os.path.dirname(CACHE_DIR))
+if os.path.exists(CACHE_FILELIST_ALL):
+    os.remove(CACHE_FILELIST_ALL)
+if os.path.exists(CACHE_FILELIST):
+    os.remove(CACHE_FILELIST)
 
 
 def main():
@@ -54,7 +61,7 @@ def SPB(request, conn, webserver, port, url):
         cache_filename = webserver + url
         if cache_filename[-1] == '/':
             cache_filename = cache_filename + 'index.html'
-        full_filename = OUT_DIR + cache_filename
+        full_filename = CACHE_DIR + cache_filename
         print 'cache_filename: ' + cache_filename
         print 'full_filename: ' + full_filename
 
@@ -73,10 +80,10 @@ def SPB(request, conn, webserver, port, url):
             for line in headers_data.split('\r\n'):
                 if 'Content-Length' in line:
                     content_length = int(line[16:])
+                    print "Content-Length: " + str(content_length)
                     if content_length >= CACHE_SIZE:
                         to_cache = True
                         break
-            print "Content-Length: " + str(content_length)
 
             conn.send(data)
             if to_cache:
@@ -96,7 +103,8 @@ def SPB(request, conn, webserver, port, url):
                                 os.remove(full_filename)
                                 raise socket.error, (503, 'custom error')
                         else:
-                            with open(CACHE_FILELIST, 'w') as f:
+                            print 'appending'
+                            with open(CACHE_FILELIST, 'a') as f:
                                 f.write(cache_filename + '\n')
                             break
             else:

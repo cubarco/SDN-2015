@@ -49,7 +49,7 @@ class NyaApp(app_manager.RyuApp):
         # host_topo: {'xx:xx:xx:xx:xx:xx': {'ip': 'xxx.xxx.xxx.xxx',
         #                                   'dpid': int}, ...}
         self.hosts_topo = {}
-        # func_table: {dpid: {'func_id': int, 'desc': str}, ...}
+        # func_table: {dpid: {'func_id': int, 'desc': str, 'mac': str}, ...}
         self.func_table = {}
         # datapaths: {int: object, ...}
         self.datapaths = {}
@@ -67,7 +67,7 @@ class NyaApp(app_manager.RyuApp):
         pkt.add_protocol(ethernet.ethernet(dst='ff:ff:ff:ff:ff:ff',
                                            src='00:00:00:00:00:00',
                                            ethertype=0x9999))
-        self._send_packet(datapath, 1, pkt)
+        self.send_packet(datapath, 1, pkt)
 
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
     def _packet_in_handler(self, ev):
@@ -242,7 +242,7 @@ class NyaApp(app_manager.RyuApp):
                                 out_group=ofproto.OFPG_ANY)
         datapath.send_msg(mod)
 
-    def _send_packet(self, datapath, out_port, pkt):
+    def send_packet(self, datapath, out_port, pkt):
         ofproto = ofproto_v1_3
         parser = datapath.ofproto_parser
         pkt.serialize()
@@ -265,7 +265,7 @@ class NyaApp(app_manager.RyuApp):
         return self.datapaths.get(dpid, None)
 
     # need to modify the structure of func_table to produce usable return value
-    def get_appids(self):
-        pass
+    def get_featuretable(self):
+        return self.func_table
 
 app_manager.require_app('./simple_switch_13.py', api_style=True)

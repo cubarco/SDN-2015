@@ -11,12 +11,12 @@ from ryu.ofproto import ofproto_v1_3_parser
 
 
 class simpleflow(object):
-    def __init__(self, action, from_mac=None, to_mac=None, match_type=None, port=None):
+    def __init__(self, action, from_mac=None, to_mac=None, default_match=None, macfix=False):
         self.__from_mac = from_mac
         self.__to_mac = to_mac
         self.__action = action
-        self.__match_type = match_type
-        self.__port = port
+        self.__default_match = default_match
+        self.__macfix = macfix
 
     def get_from_mac(self):
         return self.__from_mac
@@ -24,14 +24,14 @@ class simpleflow(object):
     def get_to_mac(self):
         return self.__to_mac
 
-    def get_type(self):
-        return self.__match_type
-
-    def get_port(self):
-        return self.__port
+    def get_default_match(self):
+        return self.__default_match
 
     def get_action(self):
         return self.__action
+
+    def get_macfix(self):
+        return self.__macfix
 
 class AppManager(object):
 
@@ -71,7 +71,7 @@ class AppManager(object):
     def run(self, nyaapp):
         hosts = nyaapp.get_host_topology()
         switches = nyaapp.get_switch_topology()
-        supported_apps = nyaapp.get_appids()
+        appdict = nyaapp.get_featuretable()
         temp_flow_table = {}
         h_s_map = {}
         self.find_levels(hosts, switches, h_s_map)
@@ -86,18 +86,18 @@ class AppManager(object):
                     if hop.hop > 0:
                         for host in hosts:
                             for sw in h_s_map[host][hop.hop]:
-                                temp_flow_table.setdefault(sw, set([])).add(simpleflow(from_mac=host, action=flow_mod_group.action, match_type=flow_mod_group.default_match))
+                                temp_flow_table.setdefault(sw, set([])).add(simpleflow(from_mac=host, action=flow_mod_group.action, default_match=flow_mod_group.default_match, macfix=flow_mod_group.macfix))
                     elif hop.hop < 0:
                         for host in hosts:
                             for sw in h_s_map[host][-hop.hop]:
                                 if temp_flow_table[sw] is None:
                                     temp_flow_table[sw] = set([])
-                                temp_flow_table[sw].add(simpleflow(to_mac=host, action=flow_mod_group.action, match_type=flow_mod_group.default_match))
+                                temp_flow_table[sw].add(simpleflow(to_mac=host, action=flow_mod_group.action, default_match=flow_mod_group.default_match, macfix=flow_mod_group.macfix))
                     else:
                         for sw in switches.keys():
                             if temp_flow_table[sw] is None:
                                 temp_flow_table[sw] = set([])
-                            temp_flow_table[sw].add(simpleflow(action=flow_mod_group.action, match_type=flow_mod_group.default_match))
+                            temp_flow_table[sw].add(simpleflow(action=flow_mod_group.action, default_match=flow_mod_group.default_match, maxfix=flow_mod_group.macfix))
         flow_table_mod = []
 
         for sw in switches:
@@ -132,41 +132,24 @@ class AppManager(object):
                 pass
             # Mirror function incomplete, missing multiple flow table
             elif flow.get_action() == 0 or flow.get_action() == 1:  #AppFlowModGroup.ACTION_MIRROR | AppFlowModGroup.ACTION_REDIRECT_IN:
-                action = [parser.OFPActionOutput(1)]
+                if flow.get_macfix() and (appdict[sw].get('mac') is not None):
+                    action = [parser.OFPActionSetField(eth_dst=appdict[sw]['mac'])]
+                else:
+                    action = []
+                action.append(parser.OFPActionOutput(1))
                 src = flow.get_from_mac()
                 dst = flow.get_to_mac()
-                match_type = flow.get_type()
-                match_port = flow.get_port()
-                print match_type
-                parameters = {}
+                default_match = flow.get_default_match()
                 if src:
-                    parameters['eth_src'] = src
+                    default_match['eth_src'] = src
+                elif 'eth_src' in default_match:
+                        default_match.pop('eth_src')
                 if dst:
-                    parameters['eth_dst'] = dst
-                if match_type:
-                    parameters['eth_type'] = match_type
-                if match_port:
-                    parameters['nw_port'] = match_port
-                match = parser.OFPMatch(**parameters)
+                    default_match['eth_dst'] = dst
+                elif 'eth_dst' in default_match:
+                    default_match.pop('eth_dst')
+                match = parser.OFPMatch(**default_match)
 
-                #if match_type:
-                    #if src and dst:
-                        #match = parser.OFPMatch(eth_type=match_type, eth_src=src, eth_dst=dst)
-                    #elif src:
-                        #match = parser.OFPMatch(eth_type=match_type, eth_src=src)
-                    #elif dst:
-                        #match = parser.OFPMatch(eth_type=match_type, eth_dst=dst)
-                    #else:
-                        #match = parser.OFPMatch(eth_type=match_type)
-                #else:
-                    #if src and dst:
-                        #match = parser.OFPMatch(eth_src=src, eth_dst=dst)
-                    #elif src:
-                        #match = parser.OFPMatch(eth_src=src)
-                    #elif dst:
-                        #match = parser.OFPMatch(eth_dst=dst)
-                    #else:
-                        #match = parser.OFPMatch()
 
                 if operation == 'add':
                     nyaapp._add_flow(sw, 2, match, action)

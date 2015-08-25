@@ -27,12 +27,12 @@ class AppFlowModGroup(object):
     OFF = 0
     ON = 1
 
-    def __init__(self, default_state=ON, default_match=None, port=None, action=ACTION_MIRROR):
+    def __init__(self, default_state=ON, default_match=None, action=ACTION_MIRROR, macfix=False):
         self.flow_mod = []
         self.default_match = default_match
-        self.port = port
         self.state = default_state
         self.action = action
+        self.macfix = macfix
 
     def append_mod(self, i):
         self.flow_mod.append(i)

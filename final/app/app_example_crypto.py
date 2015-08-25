@@ -9,7 +9,7 @@ class appcrypto(libnya.GlobalComputeNodeApp):
     def __init__(self):
         flowmod1 = libnya.AppFlowMod(1)  # First hop
         flowmod2 = libnya.AppFlowMod(-1)  # Last hop
-        flowmodgroup = libnya.AppFlowModGroup(default_match=0x0800, action=1)
+        flowmodgroup = libnya.AppFlowModGroup(default_match={'eth_type': 0x0800}, action=1)
         flowmodgroup.append_mod(flowmod1)
         flowmodgroup.append_mod(flowmod2)
         text1 = libnya.AppUIText("name", "Crypto Test")
