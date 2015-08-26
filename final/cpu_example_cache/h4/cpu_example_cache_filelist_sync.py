@@ -37,6 +37,8 @@ while True:
                                      )
         except urllib2.HTTPError:
             pass
+        except urllib2.URLError:
+            pass
         else:
             filelist[server] = map(str.strip, opener.readlines())
 
