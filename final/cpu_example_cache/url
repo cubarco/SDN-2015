@@ -1,0 +1,1 @@
+wget http://mirrors.ustc.edu.cn/archlinux/core/os/x86_64/linux-4.1.6-1-x86_64.pkg.tar.xz -O /dev/null
