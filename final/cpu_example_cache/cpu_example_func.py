@@ -38,9 +38,8 @@ while True:
         pkt.show()
         resp = Ether(src=MAC_ADDR, dst="ff:ff:ff:ff:ff:ff",
                      type=0x9999) / \
-            ('{"func_id": 1234, "desc": "This is an example description.", \
+            ('{"func_id": 2, "desc": "This is an example description.", \
             "mac": "%s"}' % MAC_ADDR)
         resp.show()
-        print str(resp)
         s.send(str(resp))
         time.sleep(1)

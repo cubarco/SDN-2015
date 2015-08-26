@@ -1,0 +1,115 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="topo.css" type="text/css" rel="stylesheet"/>
+  <link rel="stylesheet" href="bootstrap-table.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="d3.v3.min.js" charset="utf-8"></script>
+  <style>
+    body {
+        margin: 5px;
+        background: #A6A6A6
+    }
+
+    /* Tab Navigation */
+    .nav-tabs {
+        margin: 0;
+        padding: 0;
+        border: 0;
+    }
+    .nav-tabs > li > a {
+        background: #DADADA;
+        border-radius: 0;
+        box-shadow: inset 0 -8px 7px -9px rgba(0,0,0,.4),-2px -2px 5px -2px rgba(0,0,0,.4);
+    }
+    .nav-tabs > li.active > a,
+    .nav-tabs > li.active > a:hover {
+        background: #F5F5F5;
+        box-shadow: inset 0 0 0 0 rgba(0,0,0,.4),-2px -3px 5px -2px rgba(0,0,0,.4);
+    }
+
+    /* Tab Content */
+    .tab-pane {
+        background: #F5F5F5;
+        box-shadow: 0 0 4px rgba(0,0,0,.4);
+        border-radius: 0;
+        text-align: center;
+        padding: 10px;
+    }
+  </style>
+  <script>
+function refresh_status() {
+    $.ajax({
+        url: "/status-tip"
+    })
+    .done(function( data ) {
+        $('#status-tip').html(data);
+    });
+    $.ajax({
+        url: "/status-modal"
+    })
+    .done(function( data ) {
+        $('#status-modals').html(data);
+    });
+}
+  </script>
+</head>
+
+<body data-spy="scroll" data-target="#navbar-whatever">
+
+  <div class="container">
+    <div class="page-header" >
+      <h1>
+        Dashboard
+        <small>Libnya</small>
+      </h1>
+    </div>
+
+  </div>
+    <div class="container">
+
+        <!-- Nav tabs -->
+        <ul class="nav nav-tabs" role="tablist">
+          <li class="active">
+              <a href="#topo" role="tab" data-toggle="tab">
+                  <icon class="fa fa-home"></icon> Topology
+              </a>
+          </li>
+          <li><a href="#status" role="tab" data-toggle="tab">
+              <i class="fa fa-user"></i> Status
+              </a>
+          </li>
+        </ul>
+
+        <!-- Tab panes -->
+        <div class="tab-content">
+          <div class="tab-pane fade active in" id="topo">
+              <h2>Network Topology</h2>
+                <div id="chart"></div>
+                <button class="btn btn-default" role="button" onclick="load_graph();">
+                    <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Refresh
+                </button>
+          </div>
+          <div class="tab-pane fade" id="status">
+              <h2>Status</h2>
+              <div class='container' id='status-tip'> </div>
+
+            <div id='status-modals'> </div>
+
+            <button class="btn btn-default" role="button" onclick="refresh_status();">
+                <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Refresh
+            </button>
+
+          </div>
+        </div>
+    </div>
+
+<script type="text/javascript" src="topo.js"></script>
+<script src="http://cdn.bootcss.com/jquery/2.1.3/jquery.min.js" ></script>
+<script src="http://cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+<script>refresh_status();</script>
+
+</body>
+</html>

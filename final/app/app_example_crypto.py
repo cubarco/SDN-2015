@@ -4,7 +4,7 @@
 import libnya
 
 
-class appcrypto(libnya.GlobalComputeNodeApp):
+class AppCrypto(libnya.GlobalComputeNodeApp):
 
     def __init__(self):
         flowmod1 = libnya.AppFlowMod(1)  # First hop
@@ -20,4 +20,4 @@ class appcrypto(libnya.GlobalComputeNodeApp):
         libnya.GlobalComputeNodeApp.__init__(self, 2, "This Application is used to encrypt the IP packets when they come into the network and decrypt them when are to leave the network", 1, flowmodgroup, ui_elems)
 
 
-app = appcrypto()
+app = AppCrypto()

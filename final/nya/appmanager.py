@@ -164,17 +164,23 @@ class AppManager(object):
             appdict['tip'] = app.tip
             appdict['enabled'] = app.enable
             for flowmodgroup in app.flow_mod_groups:
-                for flowmod in flowmodgroup:
-                    appdict['hop'] = flowmod.hop
-                appdict['match'] = flowmodgroup.default_match
+                for flowmod in flowmodgroup.flow_mod:
+                    appdict.setdefault('hop', []).append(flowmod.hop)
+                appdict['match'] = dict(flowmodgroup.default_match)
+                if 'eth_src' in appdict['match']:
+                    del appdict['match']['eth_src']
+                if 'eth_dst' in appdict['match']:
+                    del appdict['match']['eth_dst']
                 appdict['method'] = flowmodgroup.action
                 appdict['macfix'] = flowmodgroup.macfix
-            appdict['flow_tables'] = len(self.flow_table.items())
+                sum = 0
+                for flows in self.flow_table.values():
+                    sum += len(flows)
+                appdict['flow_tables'] = sum
             json_pre[appname] = appdict
         json_out = json.dumps(json_pre)
-        jf = open('webui,json', 'w')
-        jf.write(json_out)
-        jf.close()
+        with open('/tmp/webui.json', 'w') as jf:
+            jf.write(json_out)
 
 
 coreapp = AppManager()
